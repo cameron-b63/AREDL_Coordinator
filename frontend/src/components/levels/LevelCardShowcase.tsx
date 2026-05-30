@@ -12,7 +12,10 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function openShowcase() {
+  async function openShowcase(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (cachedUrl) {
       window.open(cachedUrl, '_blank', 'noopener,noreferrer');
       return;
@@ -36,25 +39,38 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
     }
   }
 
-  const label = loading ? 'Loading…' : error ? 'Retry' : 'Showcase';
+  const title = loading
+    ? 'Loading showcase…'
+    : error
+      ? `${error} — click to retry`
+      : 'Open level showcase video';
+
+  if (cachedUrl) {
+    return (
+      <a
+        class="level-card__showcase"
+        href={cachedUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Open level showcase video"
+        aria-label="Open level showcase video"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExternalLinkIcon />
+      </a>
+    );
+  }
 
   return (
-    <div class="level-card-showcase">
-      <button
-        type="button"
-        class="level-card-showcase__button"
-        disabled={loading}
-        title={error ?? 'Watch the official level showcase'}
-        onClick={openShowcase}
-      >
-        <span>{label}</span>
-        <ExternalLinkIcon />
-      </button>
-      {error && !loading ? (
-        <span class="level-card-showcase__error" role="alert">
-          {error}
-        </span>
-      ) : null}
-    </div>
+    <button
+      type="button"
+      class="level-card__showcase"
+      disabled={loading}
+      title={title}
+      aria-label={title}
+      onClick={openShowcase}
+    >
+      <ExternalLinkIcon />
+    </button>
   );
 }

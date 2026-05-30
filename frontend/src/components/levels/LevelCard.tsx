@@ -34,14 +34,17 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           <span class="level-card__rank">#{level.position}</span>
           <span class="level-card__dash"> - </span>
           <span class="level-card__name">{level.name}</span>
-          <button
-            type="button"
-            class="level-card__id"
-            title={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
-            onClick={handleCopyId}
-          >
-            ({level.gameLevelId})
-          </button>
+          <span class="level-card__meta">
+            <button
+              type="button"
+              class="level-card__id"
+              title={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
+              onClick={handleCopyId}
+            >
+              ({level.gameLevelId})
+            </button>
+            <LevelCardShowcase level={level} />
+          </span>
         </h2>
         <AssigneeBubble
           verb="Completed"
@@ -50,7 +53,6 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           completed={completed}
         />
       </div>
-      <LevelCardShowcase level={level} />
       <div class="level-card__aside">
         {completed ? (
           <LevelCardActions level={level} />
