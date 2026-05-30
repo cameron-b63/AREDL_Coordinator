@@ -16,19 +16,28 @@ export function AssigneeBubble({
 
   return (
     <div
-      class={`assignee-bubble${completed ? ' assignee-bubble--completed' : ''}`}
+      class="assignee-status"
       title={`${verb} By: ${username}`}
     >
-      <span class="assignee-bubble__prefix">{verb} By:</span>
-      {completed &&
-        (avatarUrl ? (
-          <img class="assignee-bubble__avatar" src={avatarUrl} alt="" />
-        ) : (
-          <span class="assignee-bubble__avatar assignee-bubble__avatar--fallback">
-            {initials}
+      <span class="assignee-status__label">{verb} By:</span>
+      <div
+        class={`assignee-bubble${completed ? ' assignee-bubble--completed' : ''}`}
+      >
+        <div class="assignee-bubble__pill">
+          <span class="assignee-bubble__name">{username}</span>
+        </div>
+        {completed && (
+          <span class="assignee-bubble__avatar-wrap">
+            {avatarUrl ? (
+              <img class="assignee-bubble__avatar" src={avatarUrl} alt="" />
+            ) : (
+              <span class="assignee-bubble__avatar assignee-bubble__avatar--fallback">
+                {initials}
+              </span>
+            )}
           </span>
-        ))}
-      <span class="assignee-bubble__username">{username}</span>
+        )}
+      </div>
     </div>
   );
 }
