@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useScrollTop } from '../../hooks/useScrollTop';
 import { computeVirtualWindow } from '../../hooks/useVirtualWindow';
 import type { BoardLevel } from '../../lib/types/board';
@@ -33,6 +33,12 @@ export function LevelList({
   const { scrollTop, onScroll, resetScroll } = useScrollTop();
   const [viewportHeight, setViewportHeight] = useState(0);
 
+  /** Identity of the visible list — claim updates keep the same ids/order. */
+  const levelOrderKey = useMemo(
+    () => levels.map((level) => level.id).join('\0'),
+    [levels],
+  );
+
   useEffect(() => {
     if (loading) return;
 
@@ -58,7 +64,7 @@ export function LevelList({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
     resetScroll();
-  }, [levels, resetScroll]);
+  }, [levelOrderKey, resetScroll]);
 
   if (loading) {
     return (
