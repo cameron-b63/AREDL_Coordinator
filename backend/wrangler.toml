@@ -1,0 +1,16 @@
+name = "aredl-coordinator"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-10-11"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+[vars]
+FRONTEND_ORIGIN = "https://cameron-b63.github.io/AREDL_Coordinator"
+AREDL_API_BASE = "https://api.aredl.net/v2/api"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aredl-coordinator"
+database_id = "8b090da8-1325-408a-826a-8aa7171cd800"
+migrations_dir = "migrations"
