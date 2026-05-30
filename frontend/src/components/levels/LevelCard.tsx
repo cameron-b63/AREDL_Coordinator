@@ -21,7 +21,7 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           <span class="level-card__name">{level.name}</span>
         </h2>
         <AssigneeBubble
-          label="Completed"
+          verb="Completed"
           username={username}
           avatarUrl={avatarUrl}
           completed={completed}
