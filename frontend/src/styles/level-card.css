@@ -60,18 +60,12 @@
   margin: 0 auto;
 }
 
-.level-list__window {
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-}
-
 .level-list__item {
+  position: absolute;
+  left: 0;
+  right: 0;
   height: var(--level-row-height, 280px);
-}
-
-.level-list__item + .level-list__item {
-  margin-top: var(--level-row-gap, 20px);
+  contain: layout style paint;
 }
 
 .level-card {

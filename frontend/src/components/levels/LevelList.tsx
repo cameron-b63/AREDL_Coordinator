@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { useScrollTop } from '../../hooks/useScrollTop';
 import { computeVirtualWindow } from '../../hooks/useVirtualWindow';
 import type { Level } from '../../lib/types/level';
 import { levelHasActiveClaim } from '../../lib/types/claim';
@@ -6,17 +7,19 @@ import { LevelCard } from './LevelCard';
 
 export const LEVEL_ROW_HEIGHT = 280;
 export const LEVEL_ROW_GAP = 20;
+export const LEVEL_ROW_STRIDE = LEVEL_ROW_HEIGHT + LEVEL_ROW_GAP;
 
 interface LevelListProps {
   levels: Level[];
   loading: boolean;
   signedIn: boolean;
+  layoutKey: string;
   error: { message: string; retry: () => void } | null;
 }
 
-export function LevelList({ levels, loading, signedIn, error }: LevelListProps) {
+export function LevelList({ levels, loading, signedIn, layoutKey, error }: LevelListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const { scrollTop, onScroll, resetScroll } = useScrollTop();
   const [viewportHeight, setViewportHeight] = useState(0);
 
   useEffect(() => {
@@ -39,12 +42,12 @@ export function LevelList({ levels, loading, signedIn, error }: LevelListProps) 
       observer.disconnect();
       window.removeEventListener('resize', updateViewport);
     };
-  }, [loading]);
+  }, [loading, layoutKey]);
 
   useEffect(() => {
-    setScrollTop(0);
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [levels]);
+    resetScroll();
+  }, [levels, resetScroll]);
 
   if (loading) {
     return (
@@ -90,25 +93,25 @@ export function LevelList({ levels, loading, signedIn, error }: LevelListProps) 
         '--level-row-height': `${LEVEL_ROW_HEIGHT}px`,
         '--level-row-gap': `${LEVEL_ROW_GAP}px`,
       }}
-      onScroll={(event) =>
-        setScrollTop((event.currentTarget as HTMLDivElement).scrollTop)
-      }
+      onScroll={onScroll}
     >
       <div class="level-list__viewport" style={{ height: `${virtualWindow.totalHeight}px` }}>
-        <div
-          class="level-list__window"
-          style={{ transform: `translateY(${virtualWindow.offsetTop}px)` }}
-        >
-          {visibleLevels.map((level) => (
-            <div key={level.id} class="level-list__item">
+        {visibleLevels.map((level, index) => {
+          const rowIndex = virtualWindow.startIndex + index;
+          return (
+            <div
+              key={level.id}
+              class="level-list__item"
+              style={{ top: `${rowIndex * LEVEL_ROW_STRIDE}px` }}
+            >
               <LevelCard
                 level={level}
                 signedIn={signedIn}
                 hasActiveClaim={levelHasActiveClaim(level.id)}
               />
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );

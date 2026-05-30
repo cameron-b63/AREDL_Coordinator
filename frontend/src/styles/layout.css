@@ -184,9 +184,25 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  cursor: not-allowed;
-  opacity: 0.75;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.filters-button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.filters-button--active {
+  background: var(--color-accent);
+  color: var(--color-text);
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.filters-button--active:hover {
+  background: var(--color-accent-muted);
+  color: var(--color-text);
 }
 
 .sign-in-button:active {
@@ -266,6 +282,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sign-in-button {
+    transition: none;
+  }
+
+  .filters-button {
     transition: none;
   }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { fetchLevels, ApiError } from '../lib/api';
+import { levelIsCompleted, type LevelFilters } from '../lib/types/filters';
 import type { Level } from '../lib/types/level';
 
 export type LevelsState =
@@ -7,7 +8,7 @@ export type LevelsState =
   | { status: 'error'; message: string; retry: () => void }
   | { status: 'ready'; levels: Level[] };
 
-export function useLevels() {
+export function useLevels(filters: LevelFilters) {
   const [state, setState] = useState<LevelsState>({ status: 'loading' });
   const [query, setQuery] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -52,13 +53,18 @@ export function useLevels() {
   const filteredLevels = useMemo(() => {
     if (state.status !== 'ready') return [];
     const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return state.levels;
 
     return state.levels.filter((level) => {
+      if (filters.excludeCompleted && levelIsCompleted(level.id)) {
+        return false;
+      }
+
+      if (!trimmed) return true;
+
       const haystack = `#${level.position} ${level.name}`.toLowerCase();
       return haystack.includes(trimmed);
     });
-  }, [state, query]);
+  }, [state, query, filters]);
 
   return {
     state,

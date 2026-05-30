@@ -1,6 +1,7 @@
 @import './tokens.css';
 @import './layout.css';
 @import './level-card.css';
+@import './filters.css';
 
 *,
 *::before,
