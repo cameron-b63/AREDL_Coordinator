@@ -29,3 +29,8 @@ export function formatStatusLine(assignment: LevelAssignment): string {
   const who = assignment.username ?? 'Nobody Yet!';
   return `${label} By: ${who}`;
 }
+
+/** Stub until claim data is loaded from the API. */
+export function levelHasActiveClaim(_levelId: string): boolean {
+  return false;
+}

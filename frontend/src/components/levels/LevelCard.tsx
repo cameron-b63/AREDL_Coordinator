@@ -5,9 +5,10 @@ import { ClaimMenu } from './ClaimMenu';
 interface LevelCardProps {
   level: Level;
   signedIn: boolean;
+  hasActiveClaim: boolean;
 }
 
-export function LevelCard({ level, signedIn }: LevelCardProps) {
+export function LevelCard({ level, signedIn, hasActiveClaim }: LevelCardProps) {
   const statusLine = formatStatusLine(defaultAssignment());
 
   return (
@@ -20,7 +21,7 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
         </h2>
         <p class="level-card__status">{statusLine}</p>
       </div>
-      <ClaimMenu signedIn={signedIn} />
+      <ClaimMenu signedIn={signedIn} hasActiveClaim={hasActiveClaim} />
     </article>
   );
 }

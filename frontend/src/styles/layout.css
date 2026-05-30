@@ -55,7 +55,7 @@
 
 .header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--space-4);
   max-width: 72rem;
@@ -66,26 +66,26 @@
 .header__brand {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  min-width: 6rem;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.1;
 }
 
-.header__logo {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.header__nsh {
+  font-size: clamp(1.5rem, 3vw, 2rem);
   color: var(--color-accent);
 }
 
-.header__subtitle {
-  font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-muted-on-dark);
+.header__title {
+  font-size: clamp(0.625rem, 1.4vw, 0.8125rem);
+  color: var(--color-text-on-dark);
+  letter-spacing: 0.1em;
 }
 
 .header__auth {
@@ -168,6 +168,27 @@
   box-shadow: none;
 }
 
+.filters-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-panel-sm);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: not-allowed;
+  opacity: 0.75;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
 .sign-in-button:active {
   background: var(--color-accent-muted);
 }
@@ -220,8 +241,13 @@
 
   .header__brand {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-2);
+  }
+
+  .header__title {
+    font-size: 0.75rem;
   }
 
   .header__auth {
@@ -230,6 +256,10 @@
 
   .sign-in-button,
   .user-badge {
+    width: 100%;
+  }
+
+  .filters-button {
     width: 100%;
   }
 }

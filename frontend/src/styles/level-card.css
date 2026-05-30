@@ -66,8 +66,12 @@
   width: 100%;
 }
 
+.level-list__item {
+  height: var(--level-row-height, 280px);
+}
+
 .level-list__item + .level-list__item {
-  margin-top: 1.25rem;
+  margin-top: var(--level-row-gap, 20px);
 }
 
 .level-card {
@@ -76,8 +80,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  min-height: 16.25rem;
-  padding: var(--space-5) var(--space-6);
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-4) var(--space-5);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -143,6 +148,13 @@
 .claim-menu {
   display: flex;
   flex-shrink: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.claim-menu__controls {
+  display: flex;
   align-items: end;
   gap: var(--space-3);
 }
@@ -210,14 +222,31 @@
   background: var(--color-accent-muted);
 }
 
+.claim-menu__remove {
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-muted-on-dark);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .level-card {
     flex-direction: column;
     align-items: stretch;
-    min-height: 14rem;
   }
 
   .claim-menu {
+    width: 100%;
+  }
+
+  .claim-menu__controls {
     width: 100%;
   }
 
