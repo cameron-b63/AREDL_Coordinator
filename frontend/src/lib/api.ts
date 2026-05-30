@@ -1,5 +1,6 @@
 import { authHeaders, clearSessionToken } from './session';
 import type { ClaimKind } from './types/claim';
+import type { ClaimMutationResponse } from './types/claimMutation';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787';
 
@@ -127,7 +128,7 @@ export function signOutUrl(): string {
 }
 
 export function submitClaim(levelId: string, kind: ClaimKind) {
-  return apiFetch<void>('/api/claims', {
+  return apiFetch<ClaimMutationResponse>('/api/claims', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ levelId, kind }),
@@ -135,13 +136,13 @@ export function submitClaim(levelId: string, kind: ClaimKind) {
 }
 
 export function removeClaim(levelId: string) {
-  return apiFetch<void>(`/api/claims/${encodeURIComponent(levelId)}`, {
+  return apiFetch<ClaimMutationResponse>(`/api/claims/${encodeURIComponent(levelId)}`, {
     method: 'DELETE',
   });
 }
 
 export function adminResetClaim(levelId: string) {
-  return apiFetch<void>(`/api/admin/claims/${encodeURIComponent(levelId)}`, {
+  return apiFetch<ClaimMutationResponse>(`/api/admin/claims/${encodeURIComponent(levelId)}`, {
     method: 'DELETE',
   });
 }

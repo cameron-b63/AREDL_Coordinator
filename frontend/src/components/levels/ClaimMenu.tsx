@@ -7,6 +7,7 @@ import {
   isClaimKind,
   type ClaimKind,
 } from '../../lib/types/claim';
+import type { ClaimMutationResponse } from '../../lib/types/claimMutation';
 import type { User } from '../../lib/types/user';
 import { userClaimForLevel, userHasClaimOnLevel } from '../../lib/types/user';
 
@@ -16,7 +17,7 @@ interface ClaimMenuProps {
   signedIn: boolean;
   menuEnabled: boolean;
   activeClaim: ActiveClaim | null;
-  onChanged: () => void;
+  onClaimChange: (result: ClaimMutationResponse) => void;
 }
 
 export function ClaimMenu({
@@ -25,7 +26,7 @@ export function ClaimMenu({
   signedIn,
   menuEnabled,
   activeClaim,
-  onChanged,
+  onClaimChange,
 }: ClaimMenuProps) {
   const ownKind = user ? userClaimForLevel(user, level.id) : null;
   const dominantKind =
@@ -54,8 +55,8 @@ export function ClaimMenu({
     setSubmitting(true);
     setError(null);
     try {
-      await submitClaim(level.id, selection);
-      onChanged();
+      const result = await submitClaim(level.id, selection);
+      onClaimChange(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to submit claim');
     } finally {
@@ -68,8 +69,8 @@ export function ClaimMenu({
     setSubmitting(true);
     setError(null);
     try {
-      await removeClaim(level.id);
-      onChanged();
+      const result = await removeClaim(level.id);
+      onClaimChange(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to remove claim');
     } finally {

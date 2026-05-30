@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useScrollTop } from '../../hooks/useScrollTop';
 import { computeVirtualWindow } from '../../hooks/useVirtualWindow';
 import type { BoardLevel } from '../../lib/types/board';
+import type { ClaimMutationResponse } from '../../lib/types/claimMutation';
 import type { User } from '../../lib/types/user';
 import { LevelCard } from './LevelCard';
 
@@ -16,7 +17,7 @@ interface LevelListProps {
   user: User | null;
   layoutKey: string;
   error: { message: string; retry: () => void } | null;
-  onBoardChange: () => void;
+  onClaimChange: (result: ClaimMutationResponse) => void;
 }
 
 export function LevelList({
@@ -26,7 +27,7 @@ export function LevelList({
   user,
   layoutKey,
   error,
-  onBoardChange,
+  onClaimChange,
 }: LevelListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollTop, onScroll, resetScroll } = useScrollTop();
@@ -118,7 +119,7 @@ export function LevelList({
                 level={level}
                 user={user}
                 signedIn={signedIn}
-                onBoardChange={onBoardChange}
+                onClaimChange={onClaimChange}
               />
             </div>
           );

@@ -4,9 +4,11 @@ import type { User } from './types/user';
 import { userClaimForLevel } from './types/user';
 
 export interface UserTagStats {
-  completedOnBoard: number;
+  /** Board completions plus user's supposedly_completed claims. */
+  completedIncludingSupposed: number;
   topTags: { tag: string; count: number }[];
-  pointsFromCompleted: number;
+  /** Points from board completions plus supposedly_completed claims. */
+  pointsIncludingSupposed: number;
 }
 
 function userCompletedLevel(level: BoardLevel, discordId: string): boolean {
@@ -20,6 +22,16 @@ function userSupposedlyCompletedLevel(user: User, level: BoardLevel): boolean {
     return false;
   }
   return userClaimForLevel(user, level.id) === 'supposedly_completed';
+}
+
+function userCompletedOrSupposedlyCompleted(
+  level: BoardLevel,
+  user: User,
+): boolean {
+  return (
+    userCompletedLevel(level, user.discordId) ||
+    userSupposedlyCompletedLevel(user, level)
+  );
 }
 
 function levelCountsForTags(
@@ -38,8 +50,8 @@ export function computeUserTagStats(
   user: User,
   includeSupposedlyCompleted = false,
 ): UserTagStats {
-  const userLevels = levels.filter((level) =>
-    userCompletedLevel(level, user.discordId),
+  const contributionLevels = levels.filter((level) =>
+    userCompletedOrSupposedlyCompleted(level, user),
   );
 
   const tagLevels = levels.filter((level) =>
@@ -47,10 +59,10 @@ export function computeUserTagStats(
   );
 
   const tagCounts = new Map<string, number>();
-  let pointsFromCompleted = 0;
+  let pointsIncludingSupposed = 0;
 
-  for (const level of userLevels) {
-    pointsFromCompleted += level.points;
+  for (const level of contributionLevels) {
+    pointsIncludingSupposed += level.points;
   }
 
   for (const level of tagLevels) {
@@ -65,8 +77,8 @@ export function computeUserTagStats(
     .map(([tag, count]) => ({ tag, count }));
 
   return {
-    completedOnBoard: userLevels.length,
+    completedIncludingSupposed: contributionLevels.length,
     topTags,
-    pointsFromCompleted,
+    pointsIncludingSupposed,
   };
 }

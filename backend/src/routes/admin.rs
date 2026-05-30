@@ -1,6 +1,9 @@
-use crate::auth::{has_coordinator_role, require_admin, resolve_session_user, AuthError};
+use crate::auth::{has_coordinator_role, require_admin, resolve_session_identity, resolve_session_user, AuthError};
 use crate::board::invalidate_board_cache;
-use crate::claims::{delete_all_claims_for_level, delete_claims_for_user_ids, list_distinct_claim_holders};
+use crate::claims::{
+    build_claim_mutation_response, delete_all_claims_for_level, delete_claims_for_user_ids,
+    list_distinct_claim_holders,
+};
 use serde::Serialize;
 use worker::{Request, Response, Result, RouteContext};
 
@@ -17,31 +20,37 @@ struct PruneResponse {
 }
 
 pub async fn admin_reset_claim(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let identity = match resolve_session_identity(&req, &ctx.env) {
+        Ok(identity) => identity,
+        Err(AuthError::Unauthorized) => return unauthorized(),
+        Err(AuthError::Forbidden) => return forbidden(),
+    };
+
+    if require_admin(&identity).is_err() {
+        return forbidden();
+    }
+
     let user = match resolve_session_user(&req, &ctx.env).await {
         Ok(user) => user,
         Err(AuthError::Unauthorized) => return unauthorized(),
         Err(AuthError::Forbidden) => return forbidden(),
     };
-
-    if require_admin(&ctx.env, &user).await.is_err() {
-        return forbidden();
-    }
-
     let level_id = path_param(&req, "/api/admin/claims/")?;
     delete_all_claims_for_level(&ctx.env, &level_id).await?;
     invalidate_board_cache(&ctx.env).await?;
 
-    Ok(Response::empty()?.with_status(204))
+    let body = build_claim_mutation_response(&ctx.env, &user.id, &level_id).await?;
+    Response::from_json(&body)
 }
 
-pub async fn admin_prune_claims(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
-    let user = match resolve_session_user(&_req, &ctx.env).await {
-        Ok(user) => user,
+pub async fn admin_prune_claims(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let identity = match resolve_session_identity(&req, &ctx.env) {
+        Ok(identity) => identity,
         Err(AuthError::Unauthorized) => return unauthorized(),
         Err(AuthError::Forbidden) => return forbidden(),
     };
 
-    if require_admin(&ctx.env, &user).await.is_err() {
+    if require_admin(&identity).is_err() {
         return forbidden();
     }
 

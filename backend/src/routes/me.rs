@@ -1,5 +1,5 @@
-use crate::aredl::fetch_clan_profile;
-use crate::auth::{is_admin, resolve_session_user, AuthError};
+use crate::aredl::fetch_clan_profile_cached;
+use crate::auth::{resolve_session_identity, resolve_session_user, AuthError};
 use crate::claims::list_claims_for_user;
 use crate::env;
 use crate::stats::viewer_stats_from_clan;
@@ -39,18 +39,22 @@ struct ViewerStatsJson {
 }
 
 pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let identity = match resolve_session_identity(&req, &ctx.env) {
+        Ok(identity) => identity,
+        Err(AuthError::Unauthorized) => return unauthorized(),
+        Err(AuthError::Forbidden) => return unauthorized(),
+    };
+
     let user = match resolve_session_user(&req, &ctx.env).await {
         Ok(user) => user,
         Err(AuthError::Unauthorized) => return unauthorized(),
         Err(AuthError::Forbidden) => return unauthorized(),
     };
 
-    let admin = is_admin(&ctx.env, &user.discord_id)
-        .await
-        .unwrap_or(false);
-
     let clan_id = env::aredl_clan_id(&ctx.env)?;
-    let clan = fetch_clan_profile(&ctx.env, &clan_id).await.map_err(|e| e.to_string())?;
+    let clan = fetch_clan_profile_cached(&ctx.env, &clan_id)
+        .await
+        .map_err(|e| e.to_string())?;
     let stats = viewer_stats_from_clan(&clan, &user.discord_id);
     let claims = list_claims_for_user(&ctx.env, &user.id).await?;
 
@@ -60,7 +64,7 @@ pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
             discord_id: user.discord_id,
             username: user.username,
             avatar_url: user.avatar_url,
-            is_admin: admin,
+            is_admin: identity.is_admin,
             stats: ViewerStatsJson {
                 levels_contributed: stats.levels_contributed,
                 points_earned: stats.points_earned,

@@ -1,8 +1,8 @@
 use crate::auth::{
     auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
-    exchange_code, fetch_user, frontend_session_redirect_url, member_has_role, new_oauth_state,
-    oauth_state_from_request, redirect_response, set_oauth_state_cookie, set_session_cookie,
-    sign_session, upsert_user,
+    exchange_code, fetch_member_roles, fetch_user, frontend_session_redirect_url,
+    new_oauth_state, oauth_state_from_request, redirect_response, set_oauth_state_cookie,
+    set_session_cookie, sign_session, upsert_user,
 };
 use crate::env::{self, frontend_redirect_url, oauth_callback_url};
 use serde::Deserialize;
@@ -59,14 +59,10 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
     let bot_token = env::discord_bot_token(&ctx.env)?;
     let guild_id = env::discord_guild_id(&ctx.env)?;
     let required_role_id = env::discord_required_role_id(&ctx.env)?;
-    let allowed = member_has_role(
-        &bot_token,
-        &guild_id,
-        &discord_user.id,
-        &required_role_id,
-    )
-    .await?;
+    let admin_role_id = env::discord_admin_role_id(&ctx.env)?;
+    let roles = fetch_member_roles(&bot_token, &guild_id, &discord_user.id).await?;
 
+    let allowed = roles.iter().any(|role| role == &required_role_id);
     if !allowed {
         return auth_error_redirect(
             &ctx.env,
@@ -74,6 +70,7 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
         );
     }
 
+    let is_admin = roles.iter().any(|role| role == &admin_role_id);
     let avatar = avatar_url(&discord_user.id, discord_user.avatar.as_deref());
 
     let user = upsert_user(
@@ -84,7 +81,7 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
     )
     .await?;
 
-    let token = sign_session(&user.id, &jwt_secret)?;
+    let token = sign_session(&user.id, is_admin, &jwt_secret)?;
     let frontend = frontend_redirect_url(&ctx.env)?;
     let redirect_target = frontend_session_redirect_url(&frontend, &token);
 

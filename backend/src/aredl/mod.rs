@@ -1,6 +1,8 @@
+mod cache;
 mod client;
 mod types;
 
+pub use cache::{fetch_clan_profile_cached, level_has_clan_completion};
 pub use client::{fetch_clan_profile, fetch_level_showcase, fetch_levels, UpstreamError};
 pub use types::{ClanProfile, UpstreamLevel};
 

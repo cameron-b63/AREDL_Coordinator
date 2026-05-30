@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { fetchBoard, ApiError } from '../lib/api';
-import type { BoardLevel, BoardSummary } from '../lib/types/board';
+import type { ActiveClaim, BoardLevel, BoardSummary } from '../lib/types/board';
 import { applyLevelFilters } from '../lib/types/filters';
 import type { LevelFilters } from '../lib/types/filters';
 import type { User } from '../lib/types/user';
@@ -19,7 +19,9 @@ export function useLevels(filters: LevelFilters, user: User | null) {
     let cancelled = false;
 
     async function load() {
-      setState({ status: 'loading' });
+      setState((current) =>
+        current.status === 'ready' ? current : { status: 'loading' },
+      );
 
       try {
         const board = await fetchBoard(true);
@@ -63,12 +65,36 @@ export function useLevels(filters: LevelFilters, user: User | null) {
 
   const summary = state.status === 'ready' ? state.summary : null;
 
+  const patchLevelClaim = useCallback(
+    (levelId: string, active: ActiveClaim | null) => {
+      setState((current) => {
+        if (current.status !== 'ready') return current;
+        return {
+          ...current,
+          levels: current.levels.map((level) =>
+            level.id === levelId
+              ? {
+                  ...level,
+                  claim: {
+                    ...level.claim,
+                    active,
+                  },
+                }
+              : level,
+          ),
+        };
+      });
+    },
+    [],
+  );
+
   return {
     state,
     summary,
     query,
     setQuery,
     filteredLevels,
+    patchLevelClaim,
     reload: () => setReloadToken((value) => value + 1),
   };
 }

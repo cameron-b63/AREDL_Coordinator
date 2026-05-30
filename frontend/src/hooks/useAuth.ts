@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { fetchMe } from '../lib/api';
 import { consumeSessionFromUrl } from '../lib/session';
-import type { User } from '../lib/types/user';
+import type { User, UserClaim } from '../lib/types/user';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -15,6 +15,13 @@ export function useAuth() {
       setUser(null);
       return null;
     }
+  }, []);
+
+  const setClaims = useCallback((claims: UserClaim[]) => {
+    setUser((current) => {
+      if (!current) return current;
+      return { ...current, claims };
+    });
   }, []);
 
   useEffect(() => {
@@ -37,5 +44,5 @@ export function useAuth() {
     };
   }, []);
 
-  return { user, loading: user === undefined, refresh };
+  return { user, loading: user === undefined, refresh, setClaims };
 }

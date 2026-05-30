@@ -11,11 +11,13 @@ import { useAuth } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
 import { useLevels } from '../hooks/useLevels';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
+import type { ClaimMutationResponse } from '../lib/types/claimMutation';
+import { normalizeUserClaims, toActiveClaim } from '../lib/types/claimMutation';
 
 export function BoardPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
-  const { user, refresh } = useAuth();
+  const { user, setClaims } = useAuth();
 
   useEffect(() => {
     const message = consumeAuthErrorFromUrl();
@@ -26,7 +28,7 @@ export function BoardPage() {
 
   const { filtersOpen, toggleFilters, closeFilters, filters, setFilter } = useFilters();
   const signedIn = user !== null && user !== undefined;
-  const { state, summary, query, setQuery, filteredLevels, reload } = useLevels(
+  const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
     filters,
     user ?? null,
   );
@@ -49,10 +51,13 @@ export function BoardPage() {
     toggleFilters();
   }, [filtersOpen, toggleFilters]);
 
-  const handleBoardChange = useCallback(() => {
-    reload();
-    void refresh();
-  }, [reload, refresh]);
+  const handleClaimChange = useCallback(
+    (result: ClaimMutationResponse) => {
+      setClaims(normalizeUserClaims(result.claims));
+      patchLevelClaim(result.levelId, toActiveClaim(result.levelActive));
+    },
+    [patchLevelClaim, setClaims],
+  );
 
   const loading = state.status === 'loading';
   const error = state.status === 'error' ? state : null;
@@ -98,7 +103,7 @@ export function BoardPage() {
             user={user ?? null}
             layoutKey={`${filtersOpen ? 'open' : 'closed'}-${statsOpen ? 'stats' : 'nostats'}-${user ? 'in' : 'out'}`}
             error={error}
-            onBoardChange={handleBoardChange}
+            onClaimChange={handleClaimChange}
           />
         }
         statsPanel={

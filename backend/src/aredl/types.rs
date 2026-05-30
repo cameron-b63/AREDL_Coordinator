@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct UpstreamLevel {
@@ -16,12 +16,12 @@ pub struct UpstreamLevel {
 }
 
 /// `GET /aredl/clan/{id}` — clan profile with completed records.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ClanProfile {
     pub records: Vec<ClanRecord>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ClanRecord {
     pub level: ClanRecordLevel,
     pub submitted_by: ClanRecordUser,
@@ -31,7 +31,7 @@ pub struct ClanRecord {
     pub is_verification: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ClanRecordLevel {
     pub id: String,
     #[serde(default)]
@@ -49,7 +49,7 @@ pub struct ResolvedLevelDetail {
     pub verifications: Vec<LevelVerification>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ClanRecordUser {
     pub username: String,
     pub global_name: Option<String>,

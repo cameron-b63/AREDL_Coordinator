@@ -8,6 +8,7 @@ import {
   claimStrengthClass,
   isClaimKind,
 } from '../../lib/types/claim';
+import type { ClaimMutationResponse } from '../../lib/types/claimMutation';
 import type { User } from '../../lib/types/user';
 import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
@@ -18,10 +19,10 @@ interface LevelCardProps {
   level: BoardLevel;
   user: User | null;
   signedIn: boolean;
-  onBoardChange: () => void;
+  onClaimChange: (result: ClaimMutationResponse) => void;
 }
 
-export function LevelCard({ level, user, signedIn, onBoardChange }: LevelCardProps) {
+export function LevelCard({ level, user, signedIn, onClaimChange }: LevelCardProps) {
   const completed = levelIsCompleted(level);
   const activeClaim = level.claim.active;
   const [copied, setCopied] = useState(false);
@@ -64,8 +65,8 @@ export function LevelCard({ level, user, signedIn, onBoardChange }: LevelCardPro
 
     setResetting(true);
     try {
-      await adminResetClaim(level.id);
-      onBoardChange();
+      const result = await adminResetClaim(level.id);
+      onClaimChange(result);
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : 'Failed to reset claim';
@@ -125,7 +126,7 @@ export function LevelCard({ level, user, signedIn, onBoardChange }: LevelCardPro
             signedIn={signedIn}
             menuEnabled={level.claim.menuEnabled}
             activeClaim={activeClaim}
-            onChanged={onBoardChange}
+            onClaimChange={onClaimChange}
           />
         )}
       </div>

@@ -1,7 +1,8 @@
-use crate::auth::{require_coordinator, resolve_session_user, AuthError};
-use crate::board::{invalidate_board_cache, level_is_board_completed};
+use crate::auth::{resolve_session_user, AuthError};
+use crate::aredl::level_has_clan_completion;
+use crate::board::invalidate_board_cache;
 use crate::claims::{
-    can_clobber_dominant, delete_user_claim_for_level, get_user_claim_for_level, insert_claim,
+    build_claim_mutation_response, can_clobber_dominant, delete_user_claim_for_level, insert_claim,
     is_deescalation, is_valid_priority, list_claims_for_level, select_dominant_claim, update_user_claim,
 };
 use serde::Deserialize;
@@ -28,10 +29,6 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
         Err(AuthError::Forbidden) => return forbidden(),
     };
 
-    if require_coordinator(&ctx.env, &user).await.is_err() {
-        return forbidden();
-    }
-
     let body: SubmitClaimBody = match req.json().await {
         Ok(body) => body,
         Err(_) => {
@@ -51,7 +48,7 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
         );
     }
 
-    if level_is_board_completed(&ctx.env, &body.level_id).await? {
+    if level_has_clan_completion(&ctx.env, &body.level_id).await? {
         return json_error(
             409,
             "level_completed",
@@ -61,11 +58,13 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
 
     let level_claims = list_claims_for_level(&ctx.env, &body.level_id).await?;
     let dominant = select_dominant_claim(&level_claims);
-    let own = get_user_claim_for_level(&ctx.env, &user.id, &body.level_id).await?;
+    let own = level_claims
+        .iter()
+        .find(|claim| claim.user_id == user.id);
 
     if let Some(own_claim) = own {
         if own_claim.kind == body.kind {
-            return Ok(Response::empty()?.with_status(204));
+            return mutation_response(&ctx.env, &user.id, &body.level_id).await;
         }
 
         if is_deescalation(&own_claim.kind, &body.kind) {
@@ -87,8 +86,7 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
     }
 
     invalidate_board_cache(&ctx.env).await?;
-
-    Ok(Response::empty()?.with_status(204))
+    mutation_response(&ctx.env, &user.id, &body.level_id).await
 }
 
 pub async fn remove_claim(req: Request, ctx: RouteContext<()>) -> Result<Response> {
@@ -98,15 +96,15 @@ pub async fn remove_claim(req: Request, ctx: RouteContext<()>) -> Result<Respons
         Err(AuthError::Forbidden) => return forbidden(),
     };
 
-    if require_coordinator(&ctx.env, &user).await.is_err() {
-        return forbidden();
-    }
-
     let level_id = path_param(&req, "/api/claims/")?;
     delete_user_claim_for_level(&ctx.env, &user.id, &level_id).await?;
     invalidate_board_cache(&ctx.env).await?;
+    mutation_response(&ctx.env, &user.id, &level_id).await
+}
 
-    Ok(Response::empty()?.with_status(204))
+async fn mutation_response(env: &worker::Env, user_id: &str, level_id: &str) -> Result<Response> {
+    let body = build_claim_mutation_response(env, user_id, level_id).await?;
+    Response::from_json(&body)
 }
 
 fn path_param(req: &Request, prefix: &str) -> Result<String> {

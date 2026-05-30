@@ -1,4 +1,4 @@
-use crate::aredl::{fetch_clan_profile, fetch_levels, UpstreamError};
+use crate::aredl::{fetch_clan_profile_cached, fetch_levels, UpstreamError};
 use crate::board::{board_cache_control_header, board_cache_key, build_board, BoardResponse};
 use crate::claims::list_all_claims;
 use crate::env;
@@ -43,7 +43,7 @@ pub async fn board(req: Request, ctx: RouteContext<()>) -> Result<Response> {
         Err(err) => return upstream_error_response(err),
     };
 
-    let clan = match fetch_clan_profile(&ctx.env, &clan_id).await {
+    let clan = match fetch_clan_profile_cached(&ctx.env, &clan_id).await {
         Ok(clan) => clan,
         Err(err) => return upstream_error_response(err),
     };

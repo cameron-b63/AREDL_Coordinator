@@ -1,11 +1,8 @@
-use crate::aredl::{fetch_clan_profile, fetch_levels};
-use crate::board::{build_board, CompletionState};
-use crate::claims::list_all_claims;
 use crate::env;
 use worker::{Cache, Env, Result};
 
 const CACHE_TTL_SECONDS: u32 = 900;
-const BOARD_CACHE_VERSION: &str = "v=6";
+const BOARD_CACHE_VERSION: &str = "v=7";
 
 pub fn board_cache_key(exclude_legacy: bool, clan_id: &str) -> String {
     format!(
@@ -29,21 +26,14 @@ pub async fn invalidate_board_cache(env: &Env) -> Result<()> {
     Ok(())
 }
 
-pub async fn level_is_board_completed(env: &Env, level_id: &str) -> Result<bool> {
+pub async fn invalidate_clan_cache(env: &Env) -> Result<()> {
     let clan_id = env::aredl_clan_id(env)?;
-    let levels = fetch_levels(env, true)
-        .await
-        .map_err(|err| worker::Error::RustError(err.to_string()))?;
-    let clan = fetch_clan_profile(env, &clan_id)
-        .await
-        .map_err(|err| worker::Error::RustError(err.to_string()))?;
-    let claims = list_all_claims(env).await?;
-    let board = build_board(levels, clan, claims);
-
-    Ok(board
-        .levels
-        .iter()
-        .find(|level| level.id == level_id)
-        .map(|level| matches!(level.completion.state, CompletionState::Completed))
-        .unwrap_or(false))
+    let cache = Cache::default();
+    cache
+        .delete(
+            &format!("https://aredl-coordinator.internal/cache/clan?v=1&clan_id={clan_id}"),
+            false,
+        )
+        .await?;
+    Ok(())
 }

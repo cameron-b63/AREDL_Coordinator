@@ -30,13 +30,13 @@ export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
           </dd>
         </div>
         <div class="player-stats__row">
-          <dt class="player-stats__label">Completed on board</dt>
-          <dd class="player-stats__value">{tagStats.completedOnBoard}</dd>
+          <dt class="player-stats__label">Supposedly completed</dt>
+          <dd class="player-stats__value">{tagStats.completedIncludingSupposed}</dd>
         </div>
         <div class="player-stats__row">
-          <dt class="player-stats__label">Points from your completions</dt>
+          <dt class="player-stats__label">Points from your supposed completions</dt>
           <dd class="player-stats__value">
-            {tagStats.pointsFromCompleted.toLocaleString()}
+            {tagStats.pointsIncludingSupposed.toLocaleString()}
           </dd>
         </div>
       </dl>
