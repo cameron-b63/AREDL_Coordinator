@@ -1,3 +1,5 @@
+import { authHeaders, clearSessionToken } from './session';
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787';
 
 export class ApiError extends Error {
@@ -16,6 +18,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     response = await fetch(`${API_URL}${path}`, {
       credentials: 'include',
       ...init,
+      headers: {
+        ...authHeaders(),
+        ...init?.headers,
+      },
     });
   } catch {
     throw new ApiError('Network request failed — check your connection and try again.', 0);
@@ -54,12 +60,16 @@ export function fetchLevels(excludeLegacy = true) {
 export async function fetchMe(): Promise<import('./types/user').User | null> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
+    response = await fetch(`${API_URL}/api/me`, {
+      credentials: 'include',
+      headers: authHeaders(),
+    });
   } catch {
     return null;
   }
 
   if (response.status === 401) {
+    clearSessionToken();
     return null;
   }
 

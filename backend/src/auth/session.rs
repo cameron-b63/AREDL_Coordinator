@@ -7,7 +7,15 @@ pub const OAUTH_STATE_COOKIE: &str = "oauth_state";
 const OAUTH_STATE_TTL_SECS: u64 = 600;
 const SESSION_TTL_SECS: u64 = 7 * 24 * 60 * 60;
 
-pub fn session_from_request(req: &Request) -> Option<String> {
+pub fn session_token_from_request(req: &Request) -> Option<String> {
+    if let Ok(Some(auth)) = req.headers().get("Authorization") {
+        if let Some(token) = auth.strip_prefix("Bearer ") {
+            let token = token.trim();
+            if !token.is_empty() {
+                return Some(token.to_string());
+            }
+        }
+    }
     cookie_value(req, SESSION_COOKIE)
 }
 
@@ -48,14 +56,7 @@ pub fn redirect_response(location: &str) -> Result<Response> {
 }
 
 pub fn append_set_cookie(response: &Response, cookie: &str) -> Result<()> {
-    let headers = response.headers();
-    let existing = headers.get("Set-Cookie")?.unwrap_or_default();
-    let value = if existing.is_empty() {
-        cookie.to_string()
-    } else {
-        format!("{existing}, {cookie}")
-    };
-    headers.set("Set-Cookie", &value)
+    response.headers().append("Set-Cookie", cookie)
 }
 
 fn cookie_value(req: &Request, name: &str) -> Option<String> {
@@ -77,4 +78,26 @@ fn cookie_header(name: &str, value: &str, max_age_secs: u64) -> String {
 
 fn clear_cookie_header(name: &str) -> String {
     format!("{name}=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0")
+}
+
+pub fn frontend_session_redirect_url(base: &str, token: &str) -> String {
+    let encoded = url_encode(token);
+    if base.contains('?') {
+        format!("{base}&session={encoded}")
+    } else {
+        format!("{base}?session={encoded}")
+    }
+}
+
+fn url_encode(value: &str) -> String {
+    let mut encoded = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            _ => encoded.push_str(&format!("%{byte:02X}")),
+        }
+    }
+    encoded
 }

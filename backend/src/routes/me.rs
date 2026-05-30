@@ -1,4 +1,4 @@
-use crate::auth::{get_user_by_id, session_from_request, verify_session};
+use crate::auth::{get_user_by_id, session_token_from_request, verify_session};
 use crate::env;
 use serde::Serialize;
 use worker::{Request, Response, Result, RouteContext};
@@ -17,7 +17,7 @@ struct ApiUser {
 }
 
 pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
-    let token = match session_from_request(&req) {
+    let token = match session_token_from_request(&req) {
         Some(token) => token,
         None => return unauthorized(),
     };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { fetchMe } from '../lib/api';
+import { consumeSessionFromUrl } from '../lib/session';
 import type { User } from '../lib/types/user';
 
 export function useAuth() {
@@ -9,6 +10,8 @@ export function useAuth() {
     let cancelled = false;
 
     async function load() {
+      consumeSessionFromUrl();
+
       try {
         const profile = await fetchMe();
         if (!cancelled) setUser(profile);
