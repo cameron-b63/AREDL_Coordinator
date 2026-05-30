@@ -4,15 +4,19 @@
   --color-border: #2a2f3d;
   --color-text: #e4e6eb;
   --color-muted: #8b919e;
-  --color-accent: #5865f2;
+  --color-accent: #f97316;
+  --color-accent-muted: #ea580c;
+  --color-accent-soft: rgba(249, 115, 22, 0.12);
   --color-ok: #3ba55d;
   --color-error: #ed4245;
   --font-sans: system-ui, -apple-system, sans-serif;
-  --radius: 6px;
+  --radius: 8px;
+  --radius-lg: 16px;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 2rem;
+  --header-height: 4.75rem;
 }

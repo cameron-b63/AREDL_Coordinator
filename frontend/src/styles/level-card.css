@@ -1,0 +1,159 @@
+.level-list {
+  height: 100%;
+  overflow: auto;
+  padding: var(--space-5);
+}
+
+.level-list--state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.level-list__message {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.level-list__message--error {
+  color: var(--color-error);
+}
+
+.level-list__retry {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.level-list__retry:hover {
+  background: var(--color-accent-soft);
+}
+
+.level-list__viewport {
+  position: relative;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.level-list__window {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+}
+
+.level-list__item + .level-list__item {
+  margin-top: 1.25rem;
+}
+
+.level-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  min-height: 16.25rem;
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(26, 29, 39, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.level-card__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.level-card__title {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.level-card__status {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1rem;
+}
+
+.claim-menu {
+  display: flex;
+  flex-shrink: 0;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.claim-menu__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.claim-menu__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.claim-menu__select,
+.claim-menu__submit {
+  min-height: 2.75rem;
+  border-radius: var(--radius);
+  font: inherit;
+}
+
+.claim-menu__select {
+  min-width: 13rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.claim-menu__select:focus-visible,
+.claim-menu__submit:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.claim-menu__submit {
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-accent-muted);
+  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-muted));
+  color: #fff;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 900px) {
+  .level-card {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 14rem;
+  }
+
+  .claim-menu {
+    width: 100%;
+  }
+
+  .claim-menu__field {
+    flex: 1;
+  }
+
+  .claim-menu__select {
+    width: 100%;
+  }
+}

@@ -3,7 +3,7 @@ mod env;
 mod routes;
 
 use cors::{cors_allow_origin, with_cors};
-use routes::{aredl_ping, discord_callback, discord_login, health, me};
+use routes::{aredl_levels, aredl_ping, discord_callback, discord_login, health, me};
 use worker::*;
 
 #[event(fetch, respond_with_errors)]
@@ -19,6 +19,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     let response = Router::new()
         .get("/api/health", health)
         .get_async("/api/aredl/ping", aredl_ping)
+        .get_async("/api/aredl/levels", aredl_levels)
         .get("/auth/discord", discord_login)
         .get("/auth/discord/callback", discord_callback)
         .get("/api/me", me)

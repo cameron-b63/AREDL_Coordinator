@@ -10,7 +10,7 @@ struct AredlPingResponse {
 
 pub async fn aredl_ping(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let base = env::aredl_api_base(&ctx.env)?;
-    let url = format!("{}/health", base);
+    let url = format!("{base}/health");
     let request = Request::new(&url, Method::Get)?;
     let upstream = Fetch::Request(request).send().await?;
     let status = upstream.status_code();

@@ -3,7 +3,7 @@ mod auth;
 mod health;
 mod me;
 
-pub use aredl::aredl_ping;
+pub use aredl::{aredl_levels, aredl_ping};
 pub use auth::{discord_callback, discord_login};
 pub use health::health;
 pub use me::me;
