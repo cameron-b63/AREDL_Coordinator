@@ -13,7 +13,7 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
   const avatarUrl = level.completion.by?.avatarUrl ?? null;
 
   return (
-    <article class="level-card">
+    <article class={`level-card${completed ? ' level-card--completed' : ''}`}>
       <div class="level-card__content">
         <h2 class="level-card__title">
           <span class="level-card__rank">#{level.position}</span>

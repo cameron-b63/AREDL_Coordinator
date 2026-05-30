@@ -84,6 +84,16 @@
   color: var(--color-text-on-dark);
 }
 
+.level-card--completed {
+  background: var(--color-surface-completed);
+}
+
+.level-card--completed::before,
+.level-card--completed::after {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-light);
+}
+
 .level-card::before,
 .level-card::after {
   position: absolute;
