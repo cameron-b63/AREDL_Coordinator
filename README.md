@@ -52,6 +52,11 @@ backend/    Rust Worker + D1 migrations
 2. Add repository secrets:
    - `CLOUDFLARE_API_TOKEN` — Cloudflare dashboard → My Profile → API Tokens → "Edit Cloudflare Workers" template
    - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard sidebar
+   - `DISCORD_CLIENT_ID` — same value as production Discord OAuth (see §4)
+   - `DISCORD_CLIENT_SECRET` — same value as production Discord OAuth (see §4)
+   - `JWT_SECRET` — same value as production (`openssl rand -hex 32`)
+
+   GitHub Actions uploads the Discord/JWT secrets on every backend deploy. Without them, a push to `main` deploys a Worker version with no OAuth bindings.
 3. Enable GitHub Pages: Settings → Pages → Source: **Deploy from a branch** → `gh-pages` / `/ (root)`
 4. Enable workflow permissions: Settings → Actions → General → **Read and write permissions**
 
@@ -73,7 +78,7 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
    - Local dev: `http://localhost:8787/auth/discord/callback`
 3. Copy **Client ID** and **Client Secret** from the OAuth2 page.
 4. Generate a JWT signing secret: `openssl rand -hex 32`
-5. Store secrets in Cloudflare (production):
+5. Store secrets in Cloudflare (optional if using GitHub Actions secrets from step 2 above):
 
    ```bash
    cd backend
@@ -81,6 +86,8 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
    npx wrangler secret put DISCORD_CLIENT_SECRET
    npx wrangler secret put JWT_SECRET
    ```
+
+   Or sync from local `.dev.vars` after a manual deploy: `make sync-secrets`
 
 6. For local dev, copy [`backend/.dev.vars.example`](backend/.dev.vars.example) to `backend/.dev.vars` and fill in the values. Set `FRONTEND_ORIGIN=http://localhost:5173`.
 
