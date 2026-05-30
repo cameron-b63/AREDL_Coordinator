@@ -1,15 +1,16 @@
-import { defaultAssignment, formatStatusLine } from '../../lib/types/claim';
-import type { Level } from '../../lib/types/level';
+import type { BoardLevel } from '../../lib/types/board';
+import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
 
 interface LevelCardProps {
-  level: Level;
+  level: BoardLevel;
   signedIn: boolean;
-  hasActiveClaim: boolean;
 }
 
-export function LevelCard({ level, signedIn, hasActiveClaim }: LevelCardProps) {
-  const statusLine = formatStatusLine(defaultAssignment());
+export function LevelCard({ level, signedIn }: LevelCardProps) {
+  const completed = level.completion.state === 'completed';
+  const username = level.completion.by?.username ?? 'Nobody Yet';
+  const avatarUrl = level.completion.by?.avatarUrl ?? null;
 
   return (
     <article class="level-card">
@@ -19,9 +20,18 @@ export function LevelCard({ level, signedIn, hasActiveClaim }: LevelCardProps) {
           <span class="level-card__dash"> - </span>
           <span class="level-card__name">{level.name}</span>
         </h2>
-        <p class="level-card__status">{statusLine}</p>
+        <AssigneeBubble
+          label="Completed"
+          username={username}
+          avatarUrl={avatarUrl}
+          completed={completed}
+        />
       </div>
-      <ClaimMenu signedIn={signedIn} hasActiveClaim={hasActiveClaim} />
+      <ClaimMenu
+        signedIn={signedIn}
+        menuEnabled={level.claim.menuEnabled}
+        hasActiveClaim={level.claim.active !== null}
+      />
     </article>
   );
 }

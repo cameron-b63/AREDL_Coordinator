@@ -57,6 +57,11 @@ export function fetchLevels(excludeLegacy = true) {
   return apiFetch<import('./types/level').Level[]>(`/api/aredl/levels${query}`);
 }
 
+export function fetchBoard(excludeLegacy = true) {
+  const query = excludeLegacy ? '?exclude_legacy=true' : '';
+  return apiFetch<import('./types/board').BoardResponse>(`/api/board${query}`);
+}
+
 export async function fetchMe(): Promise<import('./types/user').User | null> {
   let response: Response;
   try {

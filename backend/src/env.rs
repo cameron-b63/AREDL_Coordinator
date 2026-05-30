@@ -26,6 +26,22 @@ pub fn aredl_api_base(env: &Env) -> Result<String> {
     env.var("AREDL_API_BASE").map(|v| v.to_string())
 }
 
+pub fn aredl_clan_id(env: &Env) -> Result<String> {
+    env.var("AREDL_CLAN_ID").map(|v| v.to_string())
+}
+
+pub fn discord_guild_id(env: &Env) -> Result<String> {
+    env.var("DISCORD_GUILD_ID").map(|v| v.to_string())
+}
+
+pub fn discord_required_role_id(env: &Env) -> Result<String> {
+    env.var("DISCORD_REQUIRED_ROLE_ID").map(|v| v.to_string())
+}
+
+pub fn discord_bot_token(env: &Env) -> Result<String> {
+    env.var("DISCORD_BOT_TOKEN").map(|v| v.to_string())
+}
+
 pub fn discord_client_id(env: &Env) -> Result<String> {
     env.var("DISCORD_CLIENT_ID").map(|v| v.to_string())
 }

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { fetchLevels, ApiError } from '../lib/api';
-import { levelIsCompleted, type LevelFilters } from '../lib/types/filters';
-import type { Level } from '../lib/types/level';
+import { fetchBoard, ApiError } from '../lib/api';
+import { levelIsCompleted, type BoardLevel } from '../lib/types/board';
+import type { LevelFilters } from '../lib/types/filters';
 
 export type LevelsState =
   | { status: 'loading' }
   | { status: 'error'; message: string; retry: () => void }
-  | { status: 'ready'; levels: Level[] };
+  | { status: 'ready'; levels: BoardLevel[] };
 
 export function useLevels(filters: LevelFilters) {
   const [state, setState] = useState<LevelsState>({ status: 'loading' });
@@ -20,9 +20,9 @@ export function useLevels(filters: LevelFilters) {
       setState({ status: 'loading' });
 
       try {
-        const levels = await fetchLevels(true);
+        const board = await fetchBoard(true);
         if (cancelled) return;
-        setState({ status: 'ready', levels });
+        setState({ status: 'ready', levels: board.levels });
       } catch (error) {
         if (cancelled) return;
         let message = 'Failed to load levels';
@@ -55,7 +55,7 @@ export function useLevels(filters: LevelFilters) {
     const trimmed = query.trim().toLowerCase();
 
     return state.levels.filter((level) => {
-      if (filters.excludeCompleted && levelIsCompleted(level.id)) {
+      if (filters.excludeCompleted && levelIsCompleted(level)) {
         return false;
       }
 

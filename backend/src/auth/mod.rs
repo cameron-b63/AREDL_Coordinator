@@ -5,7 +5,7 @@ mod session;
 
 pub use db::{get_user_by_id, upsert_user};
 pub use discord::{
-    auth_error_redirect, authorize_url, avatar_url, exchange_code, fetch_user,
+    auth_error_redirect, authorize_url, avatar_url, exchange_code, fetch_user, member_has_role,
 };
 pub use jwt::{sign_session, verify_session};
 pub use session::{

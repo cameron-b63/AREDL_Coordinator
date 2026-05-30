@@ -59,9 +59,11 @@ sync-secrets: ## Upload OAuth/JWT secrets from backend/.dev.vars to Cloudflare
 	@test -f $(BACKEND_DIR)/.dev.vars || (echo "Missing $(BACKEND_DIR)/.dev.vars — copy from .dev.vars.example" && exit 1)
 	@DISCORD_CLIENT_ID=$$(grep '^DISCORD_CLIENT_ID=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
 	DISCORD_CLIENT_SECRET=$$(grep '^DISCORD_CLIENT_SECRET=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
+	DISCORD_BOT_TOKEN=$$(grep '^DISCORD_BOT_TOKEN=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
 	JWT_SECRET=$$(grep '^JWT_SECRET=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
 	printf '%s' "$$DISCORD_CLIENT_ID" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_CLIENT_ID -c $(BACKEND_DIR)/wrangler.toml && \
 	printf '%s' "$$DISCORD_CLIENT_SECRET" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_CLIENT_SECRET -c $(BACKEND_DIR)/wrangler.toml && \
+	printf '%s' "$$DISCORD_BOT_TOKEN" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_BOT_TOKEN -c $(BACKEND_DIR)/wrangler.toml && \
 	printf '%s' "$$JWT_SECRET" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put JWT_SECRET -c $(BACKEND_DIR)/wrangler.toml
 
 deploy-backend: migrate-remote ## Deploy Worker to Cloudflare

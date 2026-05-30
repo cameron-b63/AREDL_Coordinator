@@ -8,6 +8,10 @@ const DISCORD_TOKEN: &str = "https://discord.com/api/oauth2/token";
 const DISCORD_USER: &str = "https://discord.com/api/users/@me";
 const OAUTH_SCOPE: &str = "identify";
 
+fn guild_member_url(guild_id: &str, user_id: &str) -> String {
+    format!("https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}")
+}
+
 #[derive(Debug, Clone)]
 pub struct DiscordUser {
     pub id: String,
@@ -25,6 +29,11 @@ struct DiscordUserResponse {
     id: String,
     username: String,
     avatar: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct GuildMemberResponse {
+    roles: Vec<String>,
 }
 
 pub fn authorize_url(client_id: &str, redirect_uri: &str, state: &str) -> String {
@@ -88,6 +97,34 @@ pub async fn fetch_user(access_token: &str) -> Result<DiscordUser> {
         username: user.username,
         avatar: user.avatar,
     })
+}
+
+pub async fn member_has_role(
+    bot_token: &str,
+    guild_id: &str,
+    user_id: &str,
+    required_role_id: &str,
+) -> Result<bool> {
+    let url = guild_member_url(guild_id, user_id);
+    let mut request = Request::new(&url, Method::Get)?;
+    request.headers_mut()?.set(
+        "Authorization",
+        &format!("Bot {bot_token}"),
+    )?;
+
+    let mut response = Fetch::Request(request).send().await?;
+    let status = response.status_code();
+
+    if status == 404 {
+        return Ok(false);
+    }
+
+    if !(200..300).contains(&status) {
+        return Err(format!("discord guild member fetch failed: {status}").into());
+    }
+
+    let member: GuildMemberResponse = response.json().await?;
+    Ok(member.roles.iter().any(|role| role == required_role_id))
 }
 
 pub fn avatar_url(discord_id: &str, avatar: Option<&str>) -> Option<String> {

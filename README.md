@@ -54,6 +54,7 @@ backend/    Rust Worker + D1 migrations
    - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard sidebar
    - `DISCORD_CLIENT_ID` — same value as production Discord OAuth (see §4)
    - `DISCORD_CLIENT_SECRET` — same value as production Discord OAuth (see §4)
+   - `DISCORD_BOT_TOKEN` — bot token for guild role checks (see §4)
    - `JWT_SECRET` — same value as production (`openssl rand -hex 32`)
 
    GitHub Actions uploads the Discord/JWT secrets on every backend deploy. Without them, a push to `main` deploys a Worker version with no OAuth bindings.
@@ -73,7 +74,8 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
 ### 4. Discord OAuth
 
 1. Create an application at [Discord Developer Portal](https://discord.com/developers/applications).
-2. Open **OAuth2** and add **both** redirect URIs (Discord requires an exact match):
+2. Under **Bot**, create a bot and copy the token into `DISCORD_BOT_TOKEN`. Invite the bot to your coordinator guild (`DISCORD_GUILD_ID` in `wrangler.toml`) with permission to view members.
+3. Open **OAuth2** and add **both** redirect URIs (Discord requires an exact match):
    - Production: `https://aredl-coordinator.cameron-bond63.workers.dev/auth/discord/callback`
    - Local dev: `http://localhost:8787/auth/discord/callback`
 3. Copy **Client ID** and **Client Secret** from the OAuth2 page.
@@ -84,6 +86,7 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
    cd backend
    npx wrangler secret put DISCORD_CLIENT_ID
    npx wrangler secret put DISCORD_CLIENT_SECRET
+   npx wrangler secret put DISCORD_BOT_TOKEN
    npx wrangler secret put JWT_SECRET
    ```
 
@@ -127,14 +130,18 @@ make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 |---|---|
 | `GET /api/health` | Backend health check |
 | `GET /api/aredl/ping` | Proxies AREDL API `/health` |
+| `GET /api/aredl/levels` | Proxies AREDL demon list (cached) |
+| `GET /api/board` | Demon list merged with NSH clan completions and claim flags (cached) |
 | `GET /auth/discord` | Starts Discord OAuth (redirects to Discord) |
 | `GET /auth/discord/callback` | OAuth callback; sets session cookie; redirects to frontend |
 | `GET /auth/logout` | Clears session cookie; redirects to frontend |
 | `GET /api/me` | Authenticated user profile (401 when signed out) |
 
+Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in the coordinator guild (`DISCORD_GUILD_ID`). The bot token checks membership via the Discord REST API.
+
 ## External API
 
-Level data comes from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). User claims are stored in D1.
+Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records). User claims are stored in D1 (write API not yet implemented).
 
 ## License
 

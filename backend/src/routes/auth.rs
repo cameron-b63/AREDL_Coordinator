@@ -1,6 +1,6 @@
 use crate::auth::{
     auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
-    exchange_code, fetch_user, frontend_session_redirect_url, new_oauth_state,
+    exchange_code, fetch_user, frontend_session_redirect_url, member_has_role, new_oauth_state,
     oauth_state_from_request, redirect_response, set_oauth_state_cookie, set_session_cookie,
     sign_session, upsert_user,
 };
@@ -55,6 +55,25 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
 
     let access_token = exchange_code(&client_id, &client_secret, &code, &redirect_uri).await?;
     let discord_user = fetch_user(&access_token).await?;
+
+    let bot_token = env::discord_bot_token(&ctx.env)?;
+    let guild_id = env::discord_guild_id(&ctx.env)?;
+    let required_role_id = env::discord_required_role_id(&ctx.env)?;
+    let allowed = member_has_role(
+        &bot_token,
+        &guild_id,
+        &discord_user.id,
+        &required_role_id,
+    )
+    .await?;
+
+    if !allowed {
+        return auth_error_redirect(
+            &ctx.env,
+            "You need the coordinator role in Discord to sign in",
+        );
+    }
+
     let avatar = avatar_url(&discord_user.id, discord_user.avatar.as_deref());
 
     let user = upsert_user(

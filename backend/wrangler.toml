@@ -9,6 +9,9 @@ command = "worker-build --release"
 FRONTEND_ORIGIN = "https://cameron-b63.github.io"
 FRONTEND_BASE_PATH = "/AREDL_Coordinator"
 AREDL_API_BASE = "https://api.aredl.net/v2/api"
+AREDL_CLAN_ID = "66fe1773-8ece-4f1e-a252-65786ae11f02"
+DISCORD_GUILD_ID = "1197386547796918277"
+DISCORD_REQUIRED_ROLE_ID = "1382421122754023434"
 
 [[d1_databases]]
 binding = "DB"

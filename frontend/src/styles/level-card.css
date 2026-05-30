@@ -131,12 +131,68 @@
   color: var(--color-text-on-dark);
 }
 
-.level-card__status {
-  margin: 0;
+.assignee-bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  height: var(--header-control-height);
+  margin-left: 0.875rem;
+  padding: 0 var(--space-4) 0 calc(var(--space-4) + 1.25rem);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-panel-sm);
+  box-sizing: border-box;
+}
+
+.assignee-bubble--completed {
+  background: var(--color-surface-raised);
+}
+
+.assignee-bubble__avatar-wrap {
+  position: absolute;
+  top: 50%;
+  left: -0.875rem;
+  z-index: 1;
+  transform: translateY(-50%);
+  line-height: 0;
+}
+
+.assignee-bubble__avatar {
+  display: block;
+  width: var(--header-control-height);
+  height: var(--header-control-height);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-panel-sm);
+  object-fit: cover;
+}
+
+.assignee-bubble__avatar--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.assignee-bubble__text {
+  overflow: hidden;
   color: var(--color-muted-on-dark);
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignee-bubble--completed .assignee-bubble__text {
+  color: var(--color-text-on-dark);
 }
 
 .claim-menu {
@@ -145,6 +201,21 @@
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-3);
+}
+
+.claim-menu--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.claim-menu--disabled .claim-menu__select,
+.claim-menu--disabled .claim-menu__submit {
+  cursor: not-allowed;
+}
+
+.claim-menu--disabled .claim-menu__submit:hover {
+  transform: none;
+  box-shadow: var(--shadow-panel-sm);
 }
 
 .claim-menu__controls {

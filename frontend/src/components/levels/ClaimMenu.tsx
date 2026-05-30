@@ -6,17 +6,22 @@ import {
 
 interface ClaimMenuProps {
   signedIn: boolean;
+  menuEnabled: boolean;
   hasActiveClaim: boolean;
 }
 
-export function ClaimMenu({ signedIn, hasActiveClaim }: ClaimMenuProps) {
+export function ClaimMenu({ signedIn, menuEnabled, hasActiveClaim }: ClaimMenuProps) {
   const [selection, setSelection] = useState<ClaimKind>('claimed');
-  const disabled = !signedIn;
-  const hint = signedIn ? 'Coming soon' : 'Sign in to claim';
-  const showRemoveClaim = signedIn && hasActiveClaim;
+  const disabled = !signedIn || !menuEnabled;
+  const hint = !menuEnabled
+    ? 'Level already completed'
+    : signedIn
+      ? 'Coming soon'
+      : 'Sign in to claim';
+  const showRemoveClaim = signedIn && hasActiveClaim && menuEnabled;
 
   return (
-    <div class="claim-menu">
+    <div class={`claim-menu${!menuEnabled ? ' claim-menu--disabled' : ''}`}>
       <div class="claim-menu__controls">
         <label class="claim-menu__field">
           <span class="claim-menu__label">Claim</span>
