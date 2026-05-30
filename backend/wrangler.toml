@@ -6,7 +6,7 @@ compatibility_date = "2025-10-11"
 command = "worker-build --release"
 
 [vars]
-FRONTEND_ORIGIN = "https://cameron-b63.github.io/AREDL_Coordinator"
+FRONTEND_ORIGIN = "https://cameron-b63.github.io"
 AREDL_API_BASE = "https://api.aredl.net/v2/api"
 
 [[d1_databases]]

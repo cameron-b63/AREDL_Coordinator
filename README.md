@@ -34,10 +34,10 @@ backend/    Rust Worker + D1 migrations
    ```
 
 5. Copy the `database_id` from the output into [`backend/wrangler.toml`](backend/wrangler.toml).
-6. Update `FRONTEND_ORIGIN` in `wrangler.toml` to your GitHub Pages URL, e.g.:
+6. Update `FRONTEND_ORIGIN` in `wrangler.toml` to your GitHub Pages CORS origin (scheme + host only, no repo path), e.g.:
 
    ```
-   https://<github-username>.github.io/AREDL_Coordinator
+   https://<github-username>.github.io
    ```
 
 7. Apply migrations locally (optional):
@@ -63,7 +63,7 @@ Update [`frontend/.env.production`](frontend/.env.production) with your deployed
 VITE_API_URL=https://aredl-coordinator.<your-subdomain>.workers.dev
 ```
 
-Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` matches your Pages URL exactly (CORS).
+Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + host, no path). Browsers send `Origin` without the repo path even when the app is served from a subpath like `/AREDL_Coordinator/`.
 
 ### 4. Discord OAuth (before auth implementation)
 

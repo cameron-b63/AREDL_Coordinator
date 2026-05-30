@@ -19,6 +19,27 @@ struct NotImplementedResponse {
     message: &'static str,
 }
 
+fn normalize_origin(configured: &str) -> String {
+    let trimmed = configured.trim_end_matches('/');
+    if let Some(scheme_end) = trimmed.find("://") {
+        let after_scheme = scheme_end + 3;
+        if let Some(path_start) = trimmed[after_scheme..].find('/') {
+            return trimmed[..after_scheme + path_start].to_string();
+        }
+    }
+    trimmed.to_string()
+}
+
+fn cors_allow_origin(req: &Request, configured: &str) -> String {
+    let allowed = normalize_origin(configured);
+    if let Ok(Some(request_origin)) = req.headers().get("Origin") {
+        if request_origin == allowed {
+            return request_origin;
+        }
+    }
+    allowed
+}
+
 fn with_cors(mut response: Response, origin: &str) -> Result<Response> {
     let headers = response.headers_mut();
     headers.set("Access-Control-Allow-Origin", origin)?;
@@ -38,11 +59,12 @@ fn not_implemented(message: &'static str) -> Result<Response> {
 
 #[event(fetch, respond_with_errors)]
 pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
-    let origin = env.var("FRONTEND_ORIGIN")?.to_string();
+    let configured_origin = env.var("FRONTEND_ORIGIN")?.to_string();
+    let cors_origin = cors_allow_origin(&req, &configured_origin);
 
     if req.method() == Method::Options {
         let response = Response::empty()?.with_status(204);
-        return with_cors(response, &origin);
+        return with_cors(response, &cors_origin);
     }
 
     let response = Router::new()
@@ -72,5 +94,5 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .run(req, env)
         .await?;
 
-    with_cors(response, &origin)
+    with_cors(response, &cors_origin)
 }
