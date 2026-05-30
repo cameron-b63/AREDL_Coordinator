@@ -1,3 +1,4 @@
+import { signOutUrl } from '../../lib/api';
 import type { User } from '../../lib/types/user';
 
 interface UserBadgeProps {
@@ -15,6 +16,9 @@ export function UserBadge({ user }: UserBadgeProps) {
         <span class="user-badge__avatar user-badge__avatar--fallback">{initials}</span>
       )}
       <span class="user-badge__name">{user.username}</span>
+      <a class="user-badge__sign-out" href={signOutUrl()}>
+        Sign out
+      </a>
     </div>
   );
 }

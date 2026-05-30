@@ -65,11 +65,15 @@ VITE_API_URL=https://aredl-coordinator.<your-subdomain>.workers.dev
 
 Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + host, no path). Browsers send `Origin` without the repo path even when the app is served from a subpath like `/AREDL_Coordinator/`.
 
-### 4. Discord OAuth (before auth implementation)
+### 4. Discord OAuth
 
 1. Create an application at [Discord Developer Portal](https://discord.com/developers/applications).
-2. Add redirect URI: `https://aredl-coordinator.<your-subdomain>.workers.dev/auth/discord/callback`
-3. Store secrets in Cloudflare (not in the repo):
+2. Open **OAuth2** and add **both** redirect URIs (Discord requires an exact match):
+   - Production: `https://aredl-coordinator.cameron-bond63.workers.dev/auth/discord/callback`
+   - Local dev: `http://localhost:8787/auth/discord/callback`
+3. Copy **Client ID** and **Client Secret** from the OAuth2 page.
+4. Generate a JWT signing secret: `openssl rand -hex 32`
+5. Store secrets in Cloudflare (production):
 
    ```bash
    cd backend
@@ -77,6 +81,10 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
    npx wrangler secret put DISCORD_CLIENT_SECRET
    npx wrangler secret put JWT_SECRET
    ```
+
+6. For local dev, copy [`backend/.dev.vars.example`](backend/.dev.vars.example) to `backend/.dev.vars` and fill in the values. Set `FRONTEND_ORIGIN=http://localhost:5173`.
+
+Also ensure `FRONTEND_BASE_PATH = "/AREDL_Coordinator"` is set in [`backend/wrangler.toml`](backend/wrangler.toml) so post-login redirects land on the GitHub Pages app path.
 
 ## Local development
 
@@ -106,15 +114,16 @@ make deploy-backend   # applies remote D1 migrations, then wrangler deploy
 make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 ```
 
-## API routes (boilerplate)
+## API routes
 
 | Route | Description |
 |---|---|
 | `GET /api/health` | Backend health check |
 | `GET /api/aredl/ping` | Proxies AREDL API `/health` |
-| `GET /auth/discord` | Stub (501) — Discord OAuth login |
-| `GET /auth/discord/callback` | Stub (501) — OAuth callback |
-| `GET /api/me` | Stub (501) — authenticated user profile |
+| `GET /auth/discord` | Starts Discord OAuth (redirects to Discord) |
+| `GET /auth/discord/callback` | OAuth callback; sets session cookie; redirects to frontend |
+| `GET /auth/logout` | Clears session cookie; redirects to frontend |
+| `GET /api/me` | Authenticated user profile (401 when signed out) |
 
 ## External API
 

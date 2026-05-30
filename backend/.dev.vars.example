@@ -1,0 +1,7 @@
+# Copy to `.dev.vars` in this directory for local `wrangler dev`.
+# Never commit `.dev.vars` — it is gitignored.
+
+DISCORD_CLIENT_ID=your_discord_client_id
+DISCORD_CLIENT_SECRET=your_discord_client_secret
+JWT_SECRET=generate_with_openssl_rand_hex_32
+FRONTEND_ORIGIN=http://localhost:5173

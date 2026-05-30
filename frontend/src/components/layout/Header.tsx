@@ -28,7 +28,15 @@ export function Header({
       <SearchBar value={searchQuery} onInput={onSearchChange} />
       <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
       <div class="header__auth">
-        {user ? <UserBadge user={user} /> : <SignInButton />}
+        {user === undefined ? (
+          <span class="header__auth-loading" aria-hidden="true">
+            …
+          </span>
+        ) : user ? (
+          <UserBadge user={user} />
+        ) : (
+          <SignInButton />
+        )}
       </div>
     </div>
   );

@@ -240,6 +240,29 @@
   font-weight: 600;
 }
 
+.user-badge__sign-out {
+  margin-left: var(--space-2);
+  color: var(--color-muted-on-dark);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.user-badge__sign-out:hover {
+  color: var(--color-text-on-dark);
+  text-decoration: underline;
+}
+
+.header__auth-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5rem;
+  min-height: 2.75rem;
+  color: var(--color-muted-on-dark);
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .app-header {
     height: auto;

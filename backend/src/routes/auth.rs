@@ -1,10 +1,81 @@
-use super::not_implemented;
-use worker::{Response, Result, RouteContext};
+use crate::auth::{
+    auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
+    exchange_code, fetch_user, new_oauth_state, oauth_state_from_request, redirect_response,
+    set_oauth_state_cookie, set_session_cookie, sign_session, upsert_user,
+};
+use crate::env::{self, frontend_redirect_url, oauth_callback_url};
+use serde::Deserialize;
+use worker::{Request, Response, Result, RouteContext};
 
-pub fn discord_login(_req: worker::Request, _ctx: RouteContext<()>) -> Result<Response> {
-    not_implemented("Discord OAuth login")
+#[derive(Deserialize)]
+struct CallbackQuery {
+    code: Option<String>,
+    state: Option<String>,
+    error: Option<String>,
 }
 
-pub fn discord_callback(_req: worker::Request, _ctx: RouteContext<()>) -> Result<Response> {
-    not_implemented("Discord OAuth callback")
+pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let client_id = env::discord_client_id(&ctx.env)?;
+    let req_url = req.url()?;
+    let redirect_uri = oauth_callback_url(&req_url);
+    let state = new_oauth_state();
+    let authorize = authorize_url(&client_id, &redirect_uri, &state);
+
+    let response = redirect_response(&authorize)?;
+    set_oauth_state_cookie(&response, &state)?;
+    Ok(response)
+}
+
+pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let query: CallbackQuery = req.query()?;
+
+    if query.error.is_some() {
+        return auth_error_redirect(&ctx.env, "discord authorization denied");
+    }
+
+    let code = query
+        .code
+        .ok_or_else(|| "missing oauth code".to_string())?;
+    let state = query
+        .state
+        .ok_or_else(|| "missing oauth state".to_string())?;
+
+    let stored_state = oauth_state_from_request(&req)
+        .ok_or_else(|| "missing oauth state cookie".to_string())?;
+    if stored_state != state {
+        return auth_error_redirect(&ctx.env, "invalid oauth state");
+    }
+
+    let req_url = req.url()?;
+    let redirect_uri = oauth_callback_url(&req_url);
+    let client_id = env::discord_client_id(&ctx.env)?;
+    let client_secret = env::discord_client_secret(&ctx.env)?;
+    let jwt_secret = env::jwt_secret(&ctx.env)?;
+
+    let access_token = exchange_code(&client_id, &client_secret, &code, &redirect_uri).await?;
+    let discord_user = fetch_user(&access_token).await?;
+    let avatar = avatar_url(&discord_user.id, discord_user.avatar.as_deref());
+
+    let user = upsert_user(
+        &ctx.env,
+        &discord_user.id,
+        &discord_user.username,
+        avatar.as_deref(),
+    )
+    .await?;
+
+    let token = sign_session(&user.id, &jwt_secret)?;
+    let frontend = frontend_redirect_url(&ctx.env)?;
+
+    let response = redirect_response(&frontend)?;
+    clear_oauth_state_cookie(&response)?;
+    set_session_cookie(&response, &token)?;
+    Ok(response)
+}
+
+pub async fn discord_logout(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let frontend = frontend_redirect_url(&ctx.env)?;
+    let response = redirect_response(&frontend)?;
+    clear_session_cookie(&response)?;
+    Ok(response)
 }

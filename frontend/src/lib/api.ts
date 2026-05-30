@@ -13,7 +13,10 @@ export class ApiError extends Error {
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, init);
+    response = await fetch(`${API_URL}${path}`, {
+      credentials: 'include',
+      ...init,
+    });
   } catch {
     throw new ApiError('Network request failed — check your connection and try again.', 0);
   }
@@ -70,6 +73,10 @@ export async function fetchMe(): Promise<import('./types/user').User | null> {
 
 export function signInUrl(): string {
   return `${API_URL}/auth/discord`;
+}
+
+export function signOutUrl(): string {
+  return `${API_URL}/auth/logout`;
 }
 
 export { API_URL };
