@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useScrollTop } from '../../hooks/useScrollTop';
 import { computeVirtualWindow } from '../../hooks/useVirtualWindow';
 import type { BoardLevel } from '../../lib/types/board';
+import type { User } from '../../lib/types/user';
 import { LevelCard } from './LevelCard';
 
 export const LEVEL_ROW_HEIGHT = 172;
@@ -12,11 +13,21 @@ interface LevelListProps {
   levels: BoardLevel[];
   loading: boolean;
   signedIn: boolean;
+  user: User | null;
   layoutKey: string;
   error: { message: string; retry: () => void } | null;
+  onBoardChange: () => void;
 }
 
-export function LevelList({ levels, loading, signedIn, layoutKey, error }: LevelListProps) {
+export function LevelList({
+  levels,
+  loading,
+  signedIn,
+  user,
+  layoutKey,
+  error,
+  onBoardChange,
+}: LevelListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollTop, onScroll, resetScroll } = useScrollTop();
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -103,7 +114,12 @@ export function LevelList({ levels, loading, signedIn, layoutKey, error }: Level
               class="level-list__item"
               style={{ top: `${rowIndex * LEVEL_ROW_STRIDE}px` }}
             >
-              <LevelCard level={level} signedIn={signedIn} />
+              <LevelCard
+                level={level}
+                user={user}
+                signedIn={signedIn}
+                onBoardChange={onBoardChange}
+              />
             </div>
           );
         })}

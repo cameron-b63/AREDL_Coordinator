@@ -1,22 +1,14 @@
 use crate::aredl::{fetch_clan_profile, fetch_levels, UpstreamError};
-use crate::board::{build_board, BoardResponse};
+use crate::board::{board_cache_control_header, board_cache_key, build_board, BoardResponse};
 use crate::claims::list_all_claims;
 use crate::env;
 use serde::Serialize;
 use worker::{Cache, Request, Response, Result, RouteContext};
 
-const CACHE_TTL_SECONDS: u32 = 900;
-
 #[derive(Serialize)]
 struct ErrorResponse {
     error: &'static str,
     message: String,
-}
-
-fn cache_key(exclude_legacy: bool, clan_id: &str) -> String {
-    format!(
-        "https://aredl-coordinator.internal/cache/board?v=4&exclude_legacy={exclude_legacy}&clan_id={clan_id}"
-    )
 }
 
 fn parse_exclude_legacy(req: &Request) -> Result<bool> {
@@ -30,10 +22,9 @@ fn parse_exclude_legacy(req: &Request) -> Result<bool> {
 
 fn board_response(body: &BoardResponse) -> Result<Response> {
     let mut response = Response::from_json(body)?;
-    response.headers_mut().set(
-        "Cache-Control",
-        &format!("public, max-age={CACHE_TTL_SECONDS}, s-maxage={CACHE_TTL_SECONDS}"),
-    )?;
+    response
+        .headers_mut()
+        .set("Cache-Control", &board_cache_control_header())?;
     Ok(response)
 }
 
@@ -41,7 +32,7 @@ pub async fn board(req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let exclude_legacy = parse_exclude_legacy(&req)?;
     let clan_id = env::aredl_clan_id(&ctx.env)?;
     let cache = Cache::default();
-    let key = cache_key(exclude_legacy, &clan_id);
+    let key = board_cache_key(exclude_legacy, &clan_id);
 
     if let Some(cached) = cache.get(&key, false).await? {
         return Ok(cached);

@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import { computeUserTagStats } from '../../lib/tagStats';
 import type { BoardLevel } from '../../lib/types/board';
 import type { User } from '../../lib/types/user';
@@ -8,7 +9,12 @@ interface PlayerStatsPanelProps {
 }
 
 export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
-  const tagStats = computeUserTagStats(levels, user.discordId);
+  const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(false);
+  const tagStats = computeUserTagStats(
+    levels,
+    user,
+    includeSupposedlyCompleted,
+  );
 
   return (
     <div class="player-stats" aria-label="Your clan contributions">
@@ -48,6 +54,21 @@ export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
           </ul>
         </section>
       ) : null}
+
+      <label class="player-stats__toggle">
+        <input
+          type="checkbox"
+          checked={includeSupposedlyCompleted}
+          onChange={(event) =>
+            setIncludeSupposedlyCompleted(
+              (event.currentTarget as HTMLInputElement).checked,
+            )
+          }
+        />
+        <span class="player-stats__toggle-label">
+          Include supposedly completed in tag breakdown
+        </span>
+      </label>
     </div>
   );
 }

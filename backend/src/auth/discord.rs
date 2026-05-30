@@ -105,6 +105,15 @@ pub async fn member_has_role(
     user_id: &str,
     required_role_id: &str,
 ) -> Result<bool> {
+    let roles = fetch_member_roles(bot_token, guild_id, user_id).await?;
+    Ok(roles.iter().any(|role| role == required_role_id))
+}
+
+pub async fn fetch_member_roles(
+    bot_token: &str,
+    guild_id: &str,
+    user_id: &str,
+) -> Result<Vec<String>> {
     let url = guild_member_url(guild_id, user_id);
     let mut request = Request::new(&url, Method::Get)?;
     request.headers_mut()?.set(
@@ -116,7 +125,7 @@ pub async fn member_has_role(
     let status = response.status_code();
 
     if status == 404 {
-        return Ok(false);
+        return Ok(Vec::new());
     }
 
     if !(200..300).contains(&status) {
@@ -124,7 +133,7 @@ pub async fn member_has_role(
     }
 
     let member: GuildMemberResponse = response.json().await?;
-    Ok(member.roles.iter().any(|role| role == required_role_id))
+    Ok(member.roles)
 }
 
 pub fn avatar_url(discord_id: &str, avatar: Option<&str>) -> Option<String> {

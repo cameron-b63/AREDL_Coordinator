@@ -1,11 +1,16 @@
 mod db;
 mod discord;
+mod guard;
 mod jwt;
 mod session;
 
 pub use db::{get_user_by_id, upsert_user};
 pub use discord::{
     auth_error_redirect, authorize_url, avatar_url, exchange_code, fetch_user, member_has_role,
+};
+pub use guard::{
+    has_coordinator_role, is_admin, require_admin, require_coordinator, resolve_session_user,
+    AuthError,
 };
 pub use jwt::{sign_session, verify_session};
 pub use session::{

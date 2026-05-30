@@ -2,6 +2,7 @@ import type { ClaimKind } from './claim';
 import type { BoardLevel } from './board';
 import type { User } from './user';
 import { levelIsCompleted } from './board';
+import { userClaimForLevel, userHasClaimOnLevel } from './user';
 
 export type ClaimFilter = ClaimKind | 'any' | 'mine';
 
@@ -50,13 +51,15 @@ export function applyLevelFilters(
 
     if (filters.claimFilter !== 'any') {
       if (!user) return false;
-      const active = level.claim.active;
       if (filters.claimFilter === 'mine') {
-        if (!active || active.claimedBy.discordId !== user.discordId) {
+        if (!userHasClaimOnLevel(user, level.id)) {
           return false;
         }
-      } else if (!active || active.kind !== filters.claimFilter) {
-        return false;
+      } else {
+        const ownKind = userClaimForLevel(user, level.id);
+        if (!ownKind || ownKind !== filters.claimFilter) {
+          return false;
+        }
       }
     }
 

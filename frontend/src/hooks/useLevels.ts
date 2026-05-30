@@ -69,5 +69,6 @@ export function useLevels(filters: LevelFilters, user: User | null) {
     query,
     setQuery,
     filteredLevels,
+    reload: () => setReloadToken((value) => value + 1),
   };
 }

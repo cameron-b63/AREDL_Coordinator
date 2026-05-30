@@ -1,5 +1,7 @@
 import type { BoardLevel } from './types/board';
 import { levelIsCompleted } from './types/board';
+import type { User } from './types/user';
+import { userClaimForLevel } from './types/user';
 
 export interface UserTagStats {
   completedOnBoard: number;
@@ -13,12 +15,35 @@ function userCompletedLevel(level: BoardLevel, discordId: string): boolean {
   );
 }
 
+function userSupposedlyCompletedLevel(user: User, level: BoardLevel): boolean {
+  if (levelIsCompleted(level)) {
+    return false;
+  }
+  return userClaimForLevel(user, level.id) === 'supposedly_completed';
+}
+
+function levelCountsForTags(
+  level: BoardLevel,
+  user: User,
+  includeSupposedlyCompleted: boolean,
+): boolean {
+  if (userCompletedLevel(level, user.discordId)) {
+    return true;
+  }
+  return includeSupposedlyCompleted && userSupposedlyCompletedLevel(user, level);
+}
+
 export function computeUserTagStats(
   levels: BoardLevel[],
-  discordId: string,
+  user: User,
+  includeSupposedlyCompleted = false,
 ): UserTagStats {
   const userLevels = levels.filter((level) =>
-    userCompletedLevel(level, discordId),
+    userCompletedLevel(level, user.discordId),
+  );
+
+  const tagLevels = levels.filter((level) =>
+    levelCountsForTags(level, user, includeSupposedlyCompleted),
   );
 
   const tagCounts = new Map<string, number>();
@@ -26,7 +51,9 @@ export function computeUserTagStats(
 
   for (const level of userLevels) {
     pointsFromCompleted += level.points;
+  }
 
+  for (const level of tagLevels) {
     for (const tag of level.tags) {
       tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
     }

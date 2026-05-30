@@ -38,6 +38,10 @@ pub fn discord_required_role_id(env: &Env) -> Result<String> {
     env.var("DISCORD_REQUIRED_ROLE_ID").map(|v| v.to_string())
 }
 
+pub fn discord_admin_role_id(env: &Env) -> Result<String> {
+    env.var("DISCORD_ADMIN_ROLE_ID").map(|v| v.to_string())
+}
+
 pub fn discord_bot_token(env: &Env) -> Result<String> {
     env.var("DISCORD_BOT_TOKEN").map(|v| v.to_string())
 }

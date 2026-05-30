@@ -1,5 +1,6 @@
 use crate::aredl::fetch_clan_profile;
-use crate::auth::{get_user_by_id, session_token_from_request, verify_session};
+use crate::auth::{is_admin, resolve_session_user, AuthError};
+use crate::claims::list_claims_for_user;
 use crate::env;
 use crate::stats::viewer_stats_from_clan;
 use serde::Serialize;
@@ -18,7 +19,16 @@ struct ApiUser {
     username: String,
     #[serde(rename = "avatarUrl")]
     avatar_url: Option<String>,
+    is_admin: bool,
     stats: ViewerStatsJson,
+    claims: Vec<UserClaimJson>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserClaimJson {
+    level_id: String,
+    kind: String,
 }
 
 #[derive(Serialize)]
@@ -29,25 +39,20 @@ struct ViewerStatsJson {
 }
 
 pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
-    let token = match session_token_from_request(&req) {
-        Some(token) => token,
-        None => return unauthorized(),
+    let user = match resolve_session_user(&req, &ctx.env).await {
+        Ok(user) => user,
+        Err(AuthError::Unauthorized) => return unauthorized(),
+        Err(AuthError::Forbidden) => return unauthorized(),
     };
 
-    let jwt_secret = env::jwt_secret(&ctx.env)?;
-    let user_id = match verify_session(&token, &jwt_secret)? {
-        Some(user_id) => user_id,
-        None => return unauthorized(),
-    };
-
-    let user = match get_user_by_id(&ctx.env, &user_id).await? {
-        Some(user) => user,
-        None => return unauthorized(),
-    };
+    let admin = is_admin(&ctx.env, &user.discord_id)
+        .await
+        .unwrap_or(false);
 
     let clan_id = env::aredl_clan_id(&ctx.env)?;
     let clan = fetch_clan_profile(&ctx.env, &clan_id).await.map_err(|e| e.to_string())?;
     let stats = viewer_stats_from_clan(&clan, &user.discord_id);
+    let claims = list_claims_for_user(&ctx.env, &user.id).await?;
 
     Response::from_json(&MeResponse {
         user: Some(ApiUser {
@@ -55,10 +60,18 @@ pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
             discord_id: user.discord_id,
             username: user.username,
             avatar_url: user.avatar_url,
+            is_admin: admin,
             stats: ViewerStatsJson {
                 levels_contributed: stats.levels_contributed,
                 points_earned: stats.points_earned,
             },
+            claims: claims
+                .into_iter()
+                .map(|claim| UserClaimJson {
+                    level_id: claim.level_id,
+                    kind: claim.kind,
+                })
+                .collect(),
         }),
     })
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::aredl::{user_avatar_url, user_display_name, ClanProfile, UpstreamLevel};
-use crate::claims::ClaimRow;
+use crate::claims::{select_dominant_claim, ClaimRow};
 
 use super::types::{
     ActiveClaim, BoardLevel, BoardResponse, BoardSummary, ClaimInfo, CompletionInfo,
@@ -72,20 +72,12 @@ pub fn build_board(
         }
     }
 
-    let mut claims_by_level: HashMap<String, ActiveClaim> = HashMap::new();
+    let mut claims_by_level: HashMap<String, Vec<ClaimRow>> = HashMap::new();
     for claim in claims {
-        let claimed_by = Completer {
-            username: claim.username,
-            avatar_url: claim.avatar_url,
-            discord_id: claim.discord_id,
-        };
-        claims_by_level.insert(
-            claim.level_id,
-            ActiveClaim {
-                kind: claim.kind,
-                claimed_by,
-            },
-        );
+        claims_by_level
+            .entry(claim.level_id.clone())
+            .or_default()
+            .push(claim);
     }
 
     let total_count = levels.len() as i32;
@@ -125,7 +117,17 @@ pub fn build_board(
                 .cloned();
 
             let menu_enabled = !matches!(completion.state, CompletionState::Completed);
-            let active = claims_by_level.get(&level.id).cloned();
+            let active = claims_by_level
+                .get(&level.id)
+                .and_then(|level_claims| select_dominant_claim(level_claims))
+                .map(|claim| ActiveClaim {
+                    kind: claim.kind.clone(),
+                    claimed_by: Completer {
+                        username: claim.username.clone(),
+                        avatar_url: claim.avatar_url.clone(),
+                        discord_id: claim.discord_id.clone(),
+                    },
+                });
 
             BoardLevel {
                 id: level.id,

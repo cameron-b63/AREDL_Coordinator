@@ -1,7 +1,14 @@
 import { useState } from 'preact/hooks';
 import { copyToClipboard, isFinePointerDevice } from '../../lib/copyToClipboard';
+import { ApiError, adminResetClaim } from '../../lib/api';
 import type { BoardLevel } from '../../lib/types/board';
 import { levelIsCompleted } from '../../lib/types/board';
+import {
+  claimKindLabel,
+  claimStrengthClass,
+  isClaimKind,
+} from '../../lib/types/claim';
+import type { User } from '../../lib/types/user';
 import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
 import { LevelCardActions } from './LevelCardActions';
@@ -9,14 +16,35 @@ import { LevelCardShowcase } from './LevelCardShowcase';
 
 interface LevelCardProps {
   level: BoardLevel;
+  user: User | null;
   signedIn: boolean;
+  onBoardChange: () => void;
 }
 
-export function LevelCard({ level, signedIn }: LevelCardProps) {
+export function LevelCard({ level, user, signedIn, onBoardChange }: LevelCardProps) {
   const completed = levelIsCompleted(level);
-  const username = level.completion.by?.username ?? 'Nobody Yet';
-  const avatarUrl = level.completion.by?.avatarUrl ?? null;
+  const activeClaim = level.claim.active;
   const [copied, setCopied] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  let verb = 'Completed';
+  let username = 'Nobody Yet';
+  let avatarUrl: string | null = null;
+  let showCompletedStyle = completed;
+  let strengthClass: string | undefined;
+
+  if (completed) {
+    username = level.completion.by?.username ?? 'Nobody Yet';
+    avatarUrl = level.completion.by?.avatarUrl ?? null;
+  } else if (activeClaim) {
+    verb = claimKindLabel(activeClaim.kind);
+    username = activeClaim.claimedBy.username;
+    avatarUrl = activeClaim.claimedBy.avatarUrl;
+    showCompletedStyle = false;
+    if (isClaimKind(activeClaim.kind)) {
+      strengthClass = claimStrengthClass(activeClaim.kind);
+    }
+  }
 
   async function handleCopyId() {
     if (!isFinePointerDevice()) return;
@@ -27,8 +55,40 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
     }
   }
 
+  async function handleAdminReset() {
+    if (!user?.isAdmin || resetting) return;
+    const confirmed = window.confirm(
+      `Hard reset the claim on "${level.name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    try {
+      await adminResetClaim(level.id);
+      onBoardChange();
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : 'Failed to reset claim';
+      window.alert(message);
+    } finally {
+      setResetting(false);
+    }
+  }
+
   return (
     <article class={`level-card${completed ? ' level-card--completed' : ''}`}>
+      {user?.isAdmin ? (
+        <button
+          type="button"
+          class="level-card__admin-reset"
+          title="Hard reset claim (admin)"
+          aria-label="Hard reset claim"
+          disabled={resetting}
+          onClick={handleAdminReset}
+        >
+          ↺
+        </button>
+      ) : null}
       <div class="level-card__info">
         <h2 class="level-card__title">
           <span class="level-card__rank">#{level.position}</span>
@@ -47,10 +107,12 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           </span>
         </h2>
         <AssigneeBubble
-          verb="Completed"
+          verb={verb}
           username={username}
           avatarUrl={avatarUrl}
-          completed={completed}
+          completed={showCompletedStyle}
+          strengthClass={strengthClass}
+          showAvatar={completed || activeClaim !== null}
         />
       </div>
       <div class="level-card__aside">
@@ -58,9 +120,12 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           <LevelCardActions level={level} />
         ) : (
           <ClaimMenu
+            level={level}
+            user={user}
             signedIn={signedIn}
             menuEnabled={level.claim.menuEnabled}
-            hasActiveClaim={level.claim.active !== null}
+            activeClaim={activeClaim}
+            onChanged={onBoardChange}
           />
         )}
       </div>

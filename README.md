@@ -135,13 +135,17 @@ make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 | `GET /auth/discord` | Starts Discord OAuth (redirects to Discord) |
 | `GET /auth/discord/callback` | OAuth callback; sets session cookie; redirects to frontend |
 | `GET /auth/logout` | Clears session cookie; redirects to frontend |
-| `GET /api/me` | Authenticated user profile (401 when signed out) |
+| `GET /api/me` | Authenticated user profile with `isAdmin` flag (401 when signed out) |
+| `POST /api/claims` | Submit or update a claim (session + coordinator role) |
+| `DELETE /api/claims/:level_id` | Remove your own claim on a level |
+| `DELETE /api/admin/claims/:level_id` | Admin hard-reset of any claim |
+| `POST /api/admin/prune-claims` | Admin: remove claims from users without the coordinator role |
 
-Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in the coordinator guild (`DISCORD_GUILD_ID`). The bot token checks membership via the Discord REST API.
+Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in the coordinator guild (`DISCORD_GUILD_ID`). Admin actions require `DISCORD_ADMIN_ROLE_ID`. The bot token checks membership via the Discord REST API.
 
 ## External API
 
-Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Claim **filters** work once rows exist in `claims`; the Claim menu submit API is not implemented yet (insert rows manually or wait for a follow-up).
+Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Each user may hold one claim per level; clobbering inserts a new row and preserves the previous claim. The board shows the highest-severity claim per level. De-escalating (submitting a lower priority on your own claim) or removing deletes your row; admin reset clears all claims on a level.
 
 ## License
 

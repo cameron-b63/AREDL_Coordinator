@@ -13,6 +13,12 @@ interface HeaderProps {
   onToggleFilters: () => void;
   statsOpen: boolean;
   onToggleStats: () => void;
+  adminPage?: boolean;
+}
+
+function adminPath(): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${base}/admin`;
 }
 
 export function Header({
@@ -23,8 +29,9 @@ export function Header({
   onToggleFilters,
   statsOpen,
   onToggleStats,
+  adminPage = false,
 }: HeaderProps) {
-  const showStats = user !== null && user !== undefined;
+  const showStats = !adminPage && user !== null && user !== undefined;
 
   return (
     <div class="header">
@@ -38,10 +45,23 @@ export function Header({
           <span class="header__nsh">NSH</span>
           <span class="header__title">Beats the AREDL</span>
         </h1>
-        <SearchBar value={searchQuery} onInput={onSearchChange} />
-        <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
+        {!adminPage ? (
+          <>
+            <SearchBar value={searchQuery} onInput={onSearchChange} />
+            <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
+          </>
+        ) : null}
       </div>
       <div class="header__edge header__edge--end">
+        {user?.isAdmin ? (
+          adminPage ? (
+            <span class="header__admin-label">Admin Portal</span>
+          ) : (
+            <a class="header__admin-link" href={adminPath()}>
+              Admin
+            </a>
+          )
+        ) : null}
         {user === undefined ? (
           <span class="header__auth-loading" aria-hidden="true">
             …

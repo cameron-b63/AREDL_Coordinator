@@ -1,4 +1,5 @@
 import { authHeaders, clearSessionToken } from './session';
+import type { ClaimKind } from './types/claim';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787';
 
@@ -10,6 +11,21 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+interface ErrorBody {
+  error?: string;
+  message?: string;
+}
+
+async function readErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const body = (await response.json()) as ErrorBody;
+    if (body.message) return body.message;
+  } catch {
+    // ignore parse failures
+  }
+  return fallback;
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -28,7 +44,13 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new ApiError(`${path} returned ${response.status}`, response.status);
+    const fallback = `${path} returned ${response.status}`;
+    const message = await readErrorMessage(response, fallback);
+    throw new ApiError(message, response.status);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
@@ -91,7 +113,9 @@ export async function fetchMe(): Promise<import('./types/user').User | null> {
   }
 
   const data = (await response.json()) as import('./types/user').MeResponse;
-  return data.user;
+  const user = data.user;
+  if (!user) return null;
+  return { ...user, isAdmin: user.isAdmin ?? false, claims: user.claims ?? [] };
 }
 
 export function signInUrl(): string {
@@ -100,6 +124,36 @@ export function signInUrl(): string {
 
 export function signOutUrl(): string {
   return `${API_URL}/auth/logout`;
+}
+
+export function submitClaim(levelId: string, kind: ClaimKind) {
+  return apiFetch<void>('/api/claims', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ levelId, kind }),
+  });
+}
+
+export function removeClaim(levelId: string) {
+  return apiFetch<void>(`/api/claims/${encodeURIComponent(levelId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function adminResetClaim(levelId: string) {
+  return apiFetch<void>(`/api/admin/claims/${encodeURIComponent(levelId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export interface PruneClaimsResponse {
+  pruned: number;
+}
+
+export function adminPruneClaims() {
+  return apiFetch<PruneClaimsResponse>('/api/admin/prune-claims', {
+    method: 'POST',
+  });
 }
 
 export { API_URL };

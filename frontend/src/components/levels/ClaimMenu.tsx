@@ -1,24 +1,81 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { ApiError, removeClaim, submitClaim } from '../../lib/api';
+import type { ActiveClaim, BoardLevel } from '../../lib/types/board';
 import {
   CLAIM_OPTIONS,
+  canSetClaimKind,
+  isClaimKind,
   type ClaimKind,
 } from '../../lib/types/claim';
+import type { User } from '../../lib/types/user';
+import { userClaimForLevel, userHasClaimOnLevel } from '../../lib/types/user';
 
 interface ClaimMenuProps {
+  level: BoardLevel;
+  user: User | null;
   signedIn: boolean;
   menuEnabled: boolean;
-  hasActiveClaim: boolean;
+  activeClaim: ActiveClaim | null;
+  onChanged: () => void;
 }
 
-export function ClaimMenu({ signedIn, menuEnabled, hasActiveClaim }: ClaimMenuProps) {
-  const [selection, setSelection] = useState<ClaimKind>('claimed');
-  const disabled = !signedIn || !menuEnabled;
+export function ClaimMenu({
+  level,
+  user,
+  signedIn,
+  menuEnabled,
+  activeClaim,
+  onChanged,
+}: ClaimMenuProps) {
+  const ownKind = user ? userClaimForLevel(user, level.id) : null;
+  const dominantKind =
+    activeClaim && isClaimKind(activeClaim.kind) ? activeClaim.kind : null;
+
+  const [selection, setSelection] = useState<ClaimKind>(ownKind ?? 'claimed');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelection(ownKind ?? 'claimed');
+  }, [ownKind, level.id]);
+
+  const disabled = !signedIn || !menuEnabled || submitting;
   const hint = !menuEnabled
     ? 'Level already completed'
     : signedIn
-      ? 'Coming soon'
+      ? 'Stake claim'
       : 'Sign in to claim';
-  const showRemoveClaim = signedIn && hasActiveClaim && menuEnabled;
+
+  const hasOwnClaim = signedIn && user !== null && userHasClaimOnLevel(user, level.id);
+  const showRemoveClaim = hasOwnClaim && menuEnabled;
+
+  async function handleSubmit() {
+    if (disabled) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await submitClaim(level.id, selection);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to submit claim');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRemove() {
+    if (!showRemoveClaim || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await removeClaim(level.id);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to remove claim');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div class={`claim-menu${!menuEnabled ? ' claim-menu--disabled' : ''}`}>
@@ -33,27 +90,37 @@ export function ClaimMenu({ signedIn, menuEnabled, hasActiveClaim }: ClaimMenuPr
               setSelection((event.currentTarget as HTMLSelectElement).value as ClaimKind)
             }
           >
-            {CLAIM_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            {CLAIM_OPTIONS.map((option) => {
+              const allowed = canSetClaimKind(ownKind, option.value, dominantKind);
+              return (
+                <option key={option.value} value={option.value} disabled={!allowed}>
+                  {option.label}
+                </option>
+              );
+            })}
           </select>
         </label>
-        <button class="claim-menu__submit" type="button" disabled={disabled} title={hint}>
-          Submit
+        <button
+          class="claim-menu__submit"
+          type="button"
+          disabled={disabled || !canSetClaimKind(ownKind, selection, dominantKind)}
+          title={hint}
+          onClick={handleSubmit}
+        >
+          {submitting ? '…' : 'STAKE'}
         </button>
       </div>
-      {showRemoveClaim && (
+      {showRemoveClaim ? (
         <button
           class="claim-menu__remove"
           type="button"
-          title="Coming soon"
-          disabled
+          disabled={submitting}
+          onClick={handleRemove}
         >
           Remove Claim
         </button>
-      )}
+      ) : null}
+      {error ? <p class="claim-menu__error">{error}</p> : null}
     </div>
   );
 }

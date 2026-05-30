@@ -146,6 +146,9 @@
 }
 
 .header__edge--end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   justify-content: flex-end;
 }
 
@@ -512,6 +515,115 @@
   height: var(--header-control-height);
   color: var(--color-muted-on-dark);
   font-weight: 600;
+}
+
+.header__admin-link,
+.header__admin-label {
+  margin-right: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-muted-on-dark);
+}
+
+.header__admin-link:hover {
+  color: var(--color-accent);
+}
+
+.admin-portal {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-text-on-dark);
+}
+
+.admin-portal__title {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-portal__section {
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.admin-portal__section-title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-portal__description,
+.admin-portal__message {
+  margin: 0 0 var(--space-4);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-muted-on-dark);
+}
+
+.admin-portal__action {
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-panel-sm);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-portal__action:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.admin-portal__success {
+  margin: var(--space-3) 0 0;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.admin-portal__error {
+  margin: var(--space-3) 0 0;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.admin-portal__footer {
+  margin: var(--space-5) 0 0;
+}
+
+.admin-portal__link {
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-portal__link:hover {
+  text-decoration: underline;
+}
+
+.admin-portal__denied {
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 @media (max-width: 768px) {
