@@ -35,21 +35,77 @@
   );
 }
 
-.app-header {
+.app-chrome {
   position: sticky;
   top: 0;
   z-index: 2;
-  height: var(--header-height);
-  padding: var(--space-3) var(--space-5);
-  border-bottom: var(--border-width) solid var(--color-border);
   background: var(--color-surface);
   box-shadow: var(--shadow-panel);
+}
+
+.clan-progress {
+  position: relative;
+  height: var(--progress-height);
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-inset);
+}
+
+.clan-progress__track {
+  position: absolute;
+  inset: 0;
+}
+
+.clan-progress__fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.35s ease;
+}
+
+.clan-progress__outcrop {
+  position: absolute;
+  top: 100%;
+  left: var(--space-5);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel-sm);
+}
+
+.clan-progress__count {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-on-dark);
+  white-space: nowrap;
+}
+
+.clan-progress__percent {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-muted-on-dark);
+}
+
+.app-header {
+  height: var(--header-height);
+  padding: var(--space-3) var(--space-5);
+  padding-top: calc(var(--space-3) + var(--space-6));
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .app-main {
   position: relative;
   z-index: 1;
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height) - var(--progress-height));
   overflow: hidden;
 }
 

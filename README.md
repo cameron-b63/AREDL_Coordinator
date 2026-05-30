@@ -141,7 +141,7 @@ Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in th
 
 ## External API
 
-Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records). User claims are stored in D1 (write API not yet implemented).
+Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Claim **filters** work once rows exist in `claims`; the Claim menu submit API is not implemented yet (insert rows manually or wait for a follow-up).
 
 ## License
 

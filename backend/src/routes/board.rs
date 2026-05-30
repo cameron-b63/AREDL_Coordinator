@@ -1,5 +1,6 @@
 use crate::aredl::{fetch_clan_profile, fetch_levels, UpstreamError};
 use crate::board::{build_board, BoardResponse};
+use crate::claims::list_all_claims;
 use crate::env;
 use serde::Serialize;
 use worker::{Cache, Request, Response, Result, RouteContext};
@@ -56,10 +57,8 @@ pub async fn board(req: Request, ctx: RouteContext<()>) -> Result<Response> {
         Err(err) => return upstream_error_response(err),
     };
 
-    let board_levels = build_board(levels, clan);
-    let body = BoardResponse {
-        levels: board_levels,
-    };
+    let claims = list_all_claims(&ctx.env).await?;
+    let body = build_board(levels, clan, claims);
 
     let response = board_response(&body)?;
     cache.put(&key, board_response(&body)?).await?;

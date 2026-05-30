@@ -1,9 +1,11 @@
 mod aredl;
 mod auth;
 mod board;
+mod claims;
 mod cors;
 mod env;
 mod routes;
+mod stats;
 
 use cors::{cors_allow_origin, with_cors};
 use routes::{

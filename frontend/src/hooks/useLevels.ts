@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { fetchBoard, ApiError } from '../lib/api';
-import { levelIsCompleted, type BoardLevel } from '../lib/types/board';
+import type { BoardLevel, BoardSummary } from '../lib/types/board';
+import { applyLevelFilters } from '../lib/types/filters';
 import type { LevelFilters } from '../lib/types/filters';
+import type { User } from '../lib/types/user';
 
 export type LevelsState =
   | { status: 'loading' }
   | { status: 'error'; message: string; retry: () => void }
-  | { status: 'ready'; levels: BoardLevel[] };
+  | { status: 'ready'; levels: BoardLevel[]; summary: BoardSummary };
 
-export function useLevels(filters: LevelFilters) {
+export function useLevels(filters: LevelFilters, user: User | null) {
   const [state, setState] = useState<LevelsState>({ status: 'loading' });
   const [query, setQuery] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -22,7 +24,11 @@ export function useLevels(filters: LevelFilters) {
       try {
         const board = await fetchBoard(true);
         if (cancelled) return;
-        setState({ status: 'ready', levels: board.levels });
+        setState({
+          status: 'ready',
+          levels: board.levels,
+          summary: board.summary,
+        });
       } catch (error) {
         if (cancelled) return;
         let message = 'Failed to load levels';
@@ -52,22 +58,14 @@ export function useLevels(filters: LevelFilters) {
 
   const filteredLevels = useMemo(() => {
     if (state.status !== 'ready') return [];
-    const trimmed = query.trim().toLowerCase();
+    return applyLevelFilters(state.levels, filters, user, query);
+  }, [state, query, filters, user]);
 
-    return state.levels.filter((level) => {
-      if (filters.excludeCompleted && levelIsCompleted(level)) {
-        return false;
-      }
-
-      if (!trimmed) return true;
-
-      const haystack = `#${level.position} ${level.name}`.toLowerCase();
-      return haystack.includes(trimmed);
-    });
-  }, [state, query, filters]);
+  const summary = state.status === 'ready' ? state.summary : null;
 
   return {
     state,
+    summary,
     query,
     setQuery,
     filteredLevels,

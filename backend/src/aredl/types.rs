@@ -5,6 +5,8 @@ pub struct UpstreamLevel {
     pub id: String,
     pub name: String,
     pub position: i32,
+    #[serde(default)]
+    pub points: i32,
 }
 
 /// `GET /aredl/clan/{id}` — clan profile with completed records.
@@ -23,6 +25,8 @@ pub struct ClanRecord {
 #[derive(Debug, Deserialize)]
 pub struct ClanRecordLevel {
     pub id: String,
+    #[serde(default)]
+    pub points: i32,
 }
 
 #[derive(Debug, Deserialize)]

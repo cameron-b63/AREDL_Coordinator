@@ -4,8 +4,8 @@ import { computeVirtualWindow } from '../../hooks/useVirtualWindow';
 import type { BoardLevel } from '../../lib/types/board';
 import { LevelCard } from './LevelCard';
 
-export const LEVEL_ROW_HEIGHT = 280;
-export const LEVEL_ROW_GAP = 20;
+export const LEVEL_ROW_HEIGHT = 200;
+export const LEVEL_ROW_GAP = 16;
 export const LEVEL_ROW_STRIDE = LEVEL_ROW_HEIGHT + LEVEL_ROW_GAP;
 
 interface LevelListProps {

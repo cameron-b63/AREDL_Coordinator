@@ -3,6 +3,7 @@ export type CompletionState = 'uncompleted' | 'completed';
 export interface Completer {
   username: string;
   avatarUrl: string | null;
+  discordId: string;
 }
 
 export interface CompletionInfo {
@@ -24,11 +25,18 @@ export interface BoardLevel {
   id: string;
   position: number;
   name: string;
+  points: number;
   completion: CompletionInfo;
   claim: ClaimInfo;
 }
 
+export interface BoardSummary {
+  completedCount: number;
+  totalCount: number;
+}
+
 export interface BoardResponse {
+  summary: BoardSummary;
   levels: BoardLevel[];
 }
 
