@@ -71,7 +71,7 @@
 .level-card {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   height: 100%;
@@ -85,13 +85,12 @@
 }
 
 .level-card--completed {
-  background: var(--color-surface-completed);
-  opacity: 0.75;
+  background: color-mix(in srgb, var(--color-surface-completed) 75%, transparent);
 }
 
 .level-card--completed::before,
 .level-card--completed::after {
-  background: var(--color-surface-raised);
+  background: color-mix(in srgb, var(--color-surface-raised) 75%, transparent);
   border-color: var(--color-border-light);
 }
 
@@ -118,6 +117,7 @@
 .level-card__info {
   display: flex;
   flex-direction: column;
+  grid-column: 1;
   justify-content: center;
   align-self: center;
   min-width: 0;
@@ -185,8 +185,10 @@
 .level-card__aside {
   display: flex;
   flex-shrink: 0;
+  grid-column: 3;
   align-items: center;
   justify-content: flex-end;
+  justify-self: end;
   align-self: center;
 }
 
@@ -199,11 +201,13 @@
 .level-card-showcase {
   display: flex;
   flex-direction: column;
+  grid-column: 2;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   justify-self: center;
   align-self: center;
+  z-index: 1;
 }
 
 .level-card-showcase__button {
@@ -522,9 +526,16 @@
     align-items: stretch;
   }
 
+  .level-card__info,
+  .level-card-showcase,
+  .level-card__aside {
+    grid-column: auto;
+  }
+
   .level-card-showcase {
     width: 100%;
     min-width: 0;
+    justify-self: stretch;
   }
 
   .level-card-showcase__button {
@@ -533,6 +544,7 @@
 
   .level-card__aside {
     width: 100%;
+    justify-self: stretch;
   }
 
   .level-card-actions {
