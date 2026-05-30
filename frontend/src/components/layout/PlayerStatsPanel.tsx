@@ -33,12 +33,6 @@ export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
             {tagStats.pointsFromCompleted.toLocaleString()}
           </dd>
         </div>
-        {tagStats.longestLengthTag ? (
-          <div class="player-stats__row">
-            <dt class="player-stats__label">Longest length completed</dt>
-            <dd class="player-stats__value">{tagStats.longestLengthTag}</dd>
-          </div>
-        ) : null}
       </dl>
 
       {tagStats.topTags.length > 0 ? (

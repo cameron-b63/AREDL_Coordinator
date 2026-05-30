@@ -70,9 +70,9 @@
 
 .level-card {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   height: 100%;
   min-height: 0;
@@ -114,10 +114,16 @@
   right: var(--space-3);
 }
 
-.level-card__content {
+.level-card__info {
   min-width: 0;
-  flex: 1;
   padding-top: var(--space-1);
+}
+
+.level-card__aside {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .level-card__title {
@@ -179,12 +185,56 @@
   color: var(--color-text-on-dark);
 }
 
+.level-card-showcase {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.5rem;
+}
+
+.level-card-showcase--empty {
+  min-width: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.level-card-showcase__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0 var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-panel-sm);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.level-card-showcase__button:hover {
+  background: var(--color-accent);
+  color: var(--color-text);
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
 .level-card-actions {
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
   gap: var(--space-2);
+  min-width: 6.5rem;
 }
 
 .level-card-actions__button {
@@ -219,12 +269,30 @@
   background: var(--color-surface-raised);
 }
 
+.level-card-actions__link {
+  display: block;
+  padding: 0 var(--space-1);
+  color: var(--color-muted-on-dark);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.level-card-actions__link:hover {
+  color: var(--color-accent);
+}
+
 /* "Completed By:" + mirrored header user-badge pill (avatar on left). */
 .assignee-status {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   max-width: 100%;
+  min-height: 2.25rem;
 }
 
 .assignee-status__label {
@@ -240,8 +308,8 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 2rem;
-  margin-left: 0.5rem;
+  height: 2.25rem;
+  margin-left: 0.75rem;
   max-width: min(100%, 14rem);
 }
 
@@ -249,7 +317,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 2rem;
+  height: 2.25rem;
   max-width: 100%;
   padding: 0 var(--space-4) 0 calc(var(--space-4) + 1.25rem);
   border: var(--border-width) solid var(--color-border);
@@ -425,17 +493,37 @@
 
 @media (max-width: 900px) {
   .level-card {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .level-card-showcase,
+  .level-card-showcase--empty {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .level-card-showcase__button {
+    width: 100%;
+  }
+
+  .level-card__aside {
+    width: 100%;
   }
 
   .level-card-actions {
     flex-direction: row;
+    flex-wrap: wrap;
     width: 100%;
+    min-width: 0;
   }
 
   .level-card-actions__button {
     flex: 1;
+  }
+
+  .level-card-actions__link {
+    width: 100%;
   }
 
   .claim-menu {

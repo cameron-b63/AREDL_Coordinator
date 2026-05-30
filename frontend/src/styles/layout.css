@@ -122,17 +122,36 @@
 
 .header {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-4);
-  max-width: 72rem;
+  width: 100%;
   height: 100%;
-  margin: 0 auto;
 }
 
-.header__menu-spacer {
-  width: 0;
-  height: var(--header-control-height);
+.header__edge {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header__edge--start {
+  justify-content: flex-start;
+}
+
+.header__edge--end {
+  justify-content: flex-end;
+}
+
+.header__center {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .stats-menu-button {
@@ -218,13 +237,6 @@
   font-size: clamp(0.625rem, 1.4vw, 0.8125rem);
   color: var(--color-text-on-dark);
   letter-spacing: 0.1em;
-}
-
-.header__auth {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  height: var(--header-control-height);
 }
 
 .search-bar {
@@ -356,7 +368,10 @@
   align-items: center;
   align-self: center;
   height: var(--header-control-height);
-  margin-right: 0.875rem;
+}
+
+.header__edge--end .user-badge {
+  margin-right: 0;
 }
 
 .user-badge__trigger {
@@ -508,6 +523,20 @@
     gap: var(--space-3);
   }
 
+  .header__edge--start {
+    order: 1;
+  }
+
+  .header__center {
+    order: 2;
+    grid-template-columns: 1fr;
+  }
+
+  .header__edge--end {
+    order: 3;
+    justify-content: stretch;
+  }
+
   .header__brand {
     flex-direction: row;
     flex-wrap: wrap;
@@ -517,10 +546,6 @@
 
   .header__title {
     font-size: 0.75rem;
-  }
-
-  .header__auth {
-    justify-content: stretch;
   }
 
   .sign-in-button,
@@ -548,9 +573,6 @@
     width: 100%;
   }
 
-  .header__menu-spacer {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

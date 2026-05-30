@@ -1,25 +1,16 @@
 import type { BoardLevel } from '../../lib/types/board';
-import { levelIsCompleted } from '../../lib/types/board';
 
 interface LevelCardActionsProps {
   level: BoardLevel;
 }
 
 export function LevelCardActions({ level }: LevelCardActionsProps) {
-  const completed = levelIsCompleted(level);
   const completionUrl = level.completion.videoUrl;
+  const verificationUrl = level.clanVerificationVideoUrl;
 
   return (
     <div class="level-card-actions">
-      <a
-        class="level-card-actions__button"
-        href={level.verificationUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Verification
-      </a>
-      {completed && completionUrl ? (
+      {completionUrl ? (
         <a
           class="level-card-actions__button level-card-actions__button--completion"
           href={completionUrl}
@@ -27,6 +18,16 @@ export function LevelCardActions({ level }: LevelCardActionsProps) {
           rel="noopener noreferrer"
         >
           Completion
+        </a>
+      ) : null}
+      {verificationUrl ? (
+        <a
+          class="level-card-actions__link"
+          href={verificationUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Verification
         </a>
       ) : null}
     </div>

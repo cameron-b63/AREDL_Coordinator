@@ -30,7 +30,9 @@ export interface BoardLevel {
   gameLevelId: number;
   twoPlayer: boolean;
   tags: string[];
-  verificationUrl: string;
+  listPageUrl: string;
+  showcaseVideoUrl?: string;
+  clanVerificationVideoUrl?: string;
   completion: CompletionInfo;
   claim: ClaimInfo;
 }

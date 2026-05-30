@@ -1,4 +1,4 @@
-use crate::aredl::{fetch_clan_profile, fetch_levels, UpstreamError};
+use crate::aredl::{fetch_clan_profile, fetch_levels, fetch_showcase_videos, UpstreamError};
 use crate::board::{build_board, BoardResponse};
 use crate::claims::list_all_claims;
 use crate::env;
@@ -15,7 +15,7 @@ struct ErrorResponse {
 
 fn cache_key(exclude_legacy: bool, clan_id: &str) -> String {
     format!(
-        "https://aredl-coordinator.internal/cache/board?v=2&exclude_legacy={exclude_legacy}&clan_id={clan_id}"
+        "https://aredl-coordinator.internal/cache/board?v=3&exclude_legacy={exclude_legacy}&clan_id={clan_id}"
     )
 }
 
@@ -58,7 +58,12 @@ pub async fn board(req: Request, ctx: RouteContext<()>) -> Result<Response> {
     };
 
     let claims = list_all_claims(&ctx.env).await?;
-    let body = build_board(levels, clan, claims);
+    let level_ids: Vec<String> = levels.iter().map(|level| level.id.clone()).collect();
+    let showcase_videos = match fetch_showcase_videos(&ctx.env, &level_ids).await {
+        Ok(showcases) => showcases,
+        Err(err) => return upstream_error_response(err),
+    };
+    let body = build_board(levels, clan, claims, showcase_videos);
 
     let response = board_response(&body)?;
     cache.put(&key, board_response(&body)?).await?;

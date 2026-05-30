@@ -18,7 +18,7 @@ fn normalize_tags(tags: Vec<Option<String>>) -> Vec<String> {
     tags.into_iter().flatten().collect()
 }
 
-fn verification_url(game_level_id: i32, two_player: bool) -> String {
+fn list_page_url(game_level_id: i32, two_player: bool) -> String {
     if two_player {
         format!("https://aredl.net/list/{game_level_id}_2p")
     } else {
@@ -31,15 +31,21 @@ pub fn build_board(
     levels: Vec<UpstreamLevel>,
     clan: ClanProfile,
     claims: Vec<ClaimRow>,
+    showcase_videos: HashMap<String, String>,
 ) -> BoardResponse {
     let mut completions: HashMap<String, LevelCompletion> = HashMap::new();
+    let mut clan_verification_videos: HashMap<String, String> = HashMap::new();
 
     for record in clan.records {
+        let level_id = record.level.id;
+
         if record.is_verification {
+            if !record.video_url.is_empty() {
+                clan_verification_videos.insert(level_id, record.video_url);
+            }
             continue;
         }
 
-        let level_id = record.level.id;
         let completer = Completer {
             username: user_display_name(
                 &record.submitted_by.username,
@@ -90,7 +96,8 @@ pub fn build_board(
         .into_iter()
         .map(|level| {
             let tags = normalize_tags(level.tags);
-            let verification_url = verification_url(level.level_id, level.two_player);
+            let list_page_url = list_page_url(level.level_id, level.two_player);
+            let showcase_video_url = showcase_videos.get(&level.id).cloned();
 
             let completion = match completions.get(&level.id) {
                 Some(entry) => {
@@ -108,6 +115,17 @@ pub fn build_board(
                 },
             };
 
+            let clan_verification_video_url = clan_verification_videos
+                .get(&level.id)
+                .filter(|verification_url| {
+                    completion
+                        .video_url
+                        .as_ref()
+                        .map(|completion_url| completion_url != *verification_url)
+                        .unwrap_or(true)
+                })
+                .cloned();
+
             let menu_enabled = !matches!(completion.state, CompletionState::Completed);
             let active = claims_by_level.get(&level.id).cloned();
 
@@ -119,7 +137,9 @@ pub fn build_board(
                 game_level_id: level.level_id,
                 two_player: level.two_player,
                 tags,
-                verification_url,
+                list_page_url,
+                showcase_video_url,
+                clan_verification_video_url,
                 completion,
                 claim: ClaimInfo {
                     menu_enabled,

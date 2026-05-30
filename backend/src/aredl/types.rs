@@ -39,6 +39,17 @@ pub struct ClanRecordLevel {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct LevelVerification {
+    pub video_url: String,
+}
+
+/// `GET /aredl/levels/{id}` — includes official list verifications (showcase).
+#[derive(Debug, Deserialize)]
+pub struct ResolvedLevelDetail {
+    pub verifications: Vec<LevelVerification>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct ClanRecordUser {
     pub username: String,
     pub global_name: Option<String>,

@@ -21,8 +21,8 @@ export function ContentSplit({
     <div
       class={`content-split${panelOpen ? ' content-split--open' : ''}${statsOpen ? ' content-split--stats-open' : ''}${filtersOpen ? ' content-split--filters-open' : ''}`}
     >
-      <div class="content-split__list">{list}</div>
       {statsPanel}
+      <div class="content-split__list">{list}</div>
       {filtersPanel}
     </div>
   );

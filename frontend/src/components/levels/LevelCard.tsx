@@ -5,6 +5,7 @@ import { levelIsCompleted } from '../../lib/types/board';
 import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
 import { LevelCardActions } from './LevelCardActions';
+import { LevelCardShowcase } from './LevelCardShowcase';
 
 interface LevelCardProps {
   level: BoardLevel;
@@ -28,7 +29,7 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
 
   return (
     <article class={`level-card${completed ? ' level-card--completed' : ''}`}>
-      <div class="level-card__content">
+      <div class="level-card__info">
         <h2 class="level-card__title">
           <span class="level-card__rank">#{level.position}</span>
           <span class="level-card__dash"> - </span>
@@ -49,15 +50,18 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           completed={completed}
         />
       </div>
-      {completed ? (
-        <LevelCardActions level={level} />
-      ) : (
-        <ClaimMenu
-          signedIn={signedIn}
-          menuEnabled={level.claim.menuEnabled}
-          hasActiveClaim={level.claim.active !== null}
-        />
-      )}
+      <LevelCardShowcase level={level} />
+      <div class="level-card__aside">
+        {completed ? (
+          <LevelCardActions level={level} />
+        ) : (
+          <ClaimMenu
+            signedIn={signedIn}
+            menuEnabled={level.claim.menuEnabled}
+            hasActiveClaim={level.claim.active !== null}
+          />
+        )}
+      </div>
     </article>
   );
 }

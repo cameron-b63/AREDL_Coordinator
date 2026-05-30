@@ -28,18 +28,20 @@ export function Header({
 
   return (
     <div class="header">
-      {showStats ? (
-        <StatsMenuButton active={statsOpen} onClick={onToggleStats} />
-      ) : (
-        <span class="header__menu-spacer" aria-hidden="true" />
-      )}
-      <h1 class="header__brand">
-        <span class="header__nsh">NSH</span>
-        <span class="header__title">Beats the AREDL</span>
-      </h1>
-      <SearchBar value={searchQuery} onInput={onSearchChange} />
-      <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
-      <div class="header__auth">
+      <div class="header__edge header__edge--start">
+        {showStats ? (
+          <StatsMenuButton active={statsOpen} onClick={onToggleStats} />
+        ) : null}
+      </div>
+      <div class="header__center">
+        <h1 class="header__brand">
+          <span class="header__nsh">NSH</span>
+          <span class="header__title">Beats the AREDL</span>
+        </h1>
+        <SearchBar value={searchQuery} onInput={onSearchChange} />
+        <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
+      </div>
+      <div class="header__edge header__edge--end">
         {user === undefined ? (
           <span class="header__auth-loading" aria-hidden="true">
             …

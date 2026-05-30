@@ -1,17 +1,8 @@
 import type { BoardLevel } from './types/board';
 import { levelIsCompleted } from './types/board';
 
-const LENGTH_RANK: Record<string, number> = {
-  Tiny: 0,
-  Short: 1,
-  Medium: 2,
-  Long: 3,
-  XL: 4,
-};
-
 export interface UserTagStats {
   completedOnBoard: number;
-  longestLengthTag: string | null;
   topTags: { tag: string; count: number }[];
   pointsFromCompleted: number;
 }
@@ -31,8 +22,6 @@ export function computeUserTagStats(
   );
 
   const tagCounts = new Map<string, number>();
-  let longestLengthTag: string | null = null;
-  let longestRank = -1;
   let pointsFromCompleted = 0;
 
   for (const level of userLevels) {
@@ -40,12 +29,6 @@ export function computeUserTagStats(
 
     for (const tag of level.tags) {
       tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
-
-      const rank = LENGTH_RANK[tag];
-      if (rank !== undefined && rank > longestRank) {
-        longestRank = rank;
-        longestLengthTag = tag;
-      }
     }
   }
 
@@ -56,7 +39,6 @@ export function computeUserTagStats(
 
   return {
     completedOnBoard: userLevels.length,
-    longestLengthTag,
     topTags,
     pointsFromCompleted,
   };
