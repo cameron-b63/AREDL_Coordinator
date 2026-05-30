@@ -80,7 +80,7 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
 
 ## Local development
 
-Requires Node.js 22+ and Rust with the `wasm32-unknown-unknown` target (`make setup-rust`).
+Requires Node.js 22+. For manual deploys, also run `make setup-rust` once to install `worker-build` (Wrangler dev runs the build automatically).
 
 ```bash
 make install   # first time
@@ -89,7 +89,7 @@ make dev       # backend on :8787, frontend on :5173
 
 Or run individually: `make dev-backend`, `make dev-frontend`.
 
-See `make help` for all targets (build, migrate, deploy, etc.).
+`make build-backend` runs `worker-build --release`, the same compile path used by `wrangler deploy`. See `make help` for all targets.
 
 ## Deploy
 

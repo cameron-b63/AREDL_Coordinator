@@ -24,9 +24,9 @@ install: ## Install frontend and backend npm dependencies
 	$(NPM) ci --prefix $(FRONTEND_DIR)
 	$(NPM) ci --prefix $(BACKEND_DIR)
 
-setup-rust: ## Add wasm32 target and worker-build for deploys
+setup-rust: ## Install worker-build for local deploys (Wrangler dev runs it automatically)
 	rustup target add $(WASM_TARGET)
-	cargo install worker-build --locked
+	cargo install worker-build --locked --version 0.8.3
 
 dev: ## Run backend and frontend dev servers in parallel
 	@echo "Backend: http://localhost:8787"
@@ -41,8 +41,8 @@ dev-frontend: ## Run Vite dev server (port 5173)
 
 build: build-backend build-frontend ## Build backend (wasm) and frontend (static)
 
-build-backend: ## Compile Rust Worker for wasm32
-	$(CARGO) build --release --manifest-path $(BACKEND_DIR)/Cargo.toml --target $(WASM_TARGET)
+build-backend: ## Build Rust Worker bundle (same path as wrangler deploy)
+	cd $(BACKEND_DIR) && worker-build --release
 
 build-frontend: ## Build frontend for production
 	$(NPM) run build --prefix $(FRONTEND_DIR)

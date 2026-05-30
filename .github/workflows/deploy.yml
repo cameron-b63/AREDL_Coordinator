@@ -17,6 +17,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+          shared-key: release-wasm32
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -25,7 +30,14 @@ jobs:
 
       - run: npm ci
 
-      - run: cargo install worker-build --locked
+      - uses: actions/cache@v4
+        id: worker-build-cache
+        with:
+          path: ~/.cargo/bin/worker-build
+          key: worker-build-0.8.3-${{ runner.os }}
+
+      - if: steps.worker-build-cache.outputs.cache-hit != 'true'
+        run: cargo install worker-build --locked --version 0.8.3
 
       - uses: cloudflare/wrangler-action@v3
         with:
