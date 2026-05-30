@@ -14,6 +14,11 @@
 
 .level-list__message {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-muted);
 }
 
@@ -21,18 +26,32 @@
   color: var(--color-error);
 }
 
+.level-list__message--error::before {
+  content: '⚠ ';
+}
+
 .level-list__retry {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-accent);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-accent);
-  font: inherit;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-panel-sm);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .level-list__retry:hover {
-  background: var(--color-accent-soft);
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.level-list__retry:active {
+  background: var(--color-accent-muted);
 }
 
 .level-list__viewport {
@@ -52,37 +71,73 @@
 }
 
 .level-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
   min-height: 16.25rem;
   padding: var(--space-5) var(--space-6);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: rgba(26, 29, 39, 0.92);
-  backdrop-filter: blur(8px);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-text-on-dark);
+}
+
+.level-card::before,
+.level-card::after {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--color-border-light);
+  background: var(--color-surface-inset);
+  content: '';
+}
+
+.level-card::before {
+  top: var(--space-3);
+  left: var(--space-3);
+}
+
+.level-card::after {
+  top: var(--space-3);
+  right: var(--space-3);
 }
 
 .level-card__content {
   min-width: 0;
   flex: 1;
+  padding-top: var(--space-2);
 }
 
 .level-card__title {
   margin: 0 0 var(--space-3);
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
   overflow: hidden;
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 2vw, 1.625rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.level-card__rank {
+  color: var(--color-accent);
+}
+
+.level-card__dash,
+.level-card__name {
+  color: var(--color-text-on-dark);
+}
+
 .level-card__status {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--color-muted-on-dark);
+  font-family: var(--font-body);
   font-size: 1rem;
+  font-weight: 600;
 }
 
 .claim-menu {
@@ -99,43 +154,60 @@
 }
 
 .claim-menu__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-muted-on-dark);
 }
 
 .claim-menu__select,
 .claim-menu__submit {
   min-height: 2.75rem;
   border-radius: var(--radius);
-  font: inherit;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 
 .claim-menu__select {
   min-width: 13rem;
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  color: var(--color-text);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-text-on-dark);
 }
 
-.claim-menu__select:focus-visible,
-.claim-menu__submit:focus-visible {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-soft);
+.claim-menu__select:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .claim-menu__submit {
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-accent-muted);
-  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-muted));
-  color: #fff;
-  font-weight: 600;
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-accent);
+  box-shadow: var(--shadow-panel-sm);
+  color: var(--color-text);
+  font-weight: 700;
   cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.55;
+}
+
+.claim-menu__submit:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.claim-menu__submit:not(:disabled):hover {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.claim-menu__submit:not(:disabled):active {
+  background: var(--color-accent-muted);
 }
 
 @media (max-width: 900px) {
@@ -155,5 +227,12 @@
 
   .claim-menu__select {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .level-list__retry,
+  .claim-menu__submit:not(:disabled) {
+    transition: none;
   }
 }

@@ -10,7 +10,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ header, children }: AppLayoutProps) {
   const mainRef = useRef<HTMLDivElement>(null);
-  const parallaxOffset = useParallax(mainRef, 0.15);
+  const parallaxOffset = useParallax(mainRef, 0.08);
 
   return (
     <div class="app-shell">
