@@ -13,7 +13,6 @@ hmac = "0.12"
 sha2 = "0.10"
 base64 = "0.22"
 uuid = { version = "1", features = ["v4", "js"] }
-futures = { version = "0.3", default-features = false, features = ["alloc", "async-await"] }
 
 [profile.release]
 opt-level = "s"

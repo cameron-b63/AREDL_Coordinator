@@ -31,7 +31,6 @@ export interface BoardLevel {
   twoPlayer: boolean;
   tags: string[];
   listPageUrl: string;
-  showcaseVideoUrl?: string;
   clanVerificationVideoUrl?: string;
   completion: CompletionInfo;
   claim: ClaimInfo;

@@ -193,12 +193,6 @@
   min-width: 6.5rem;
 }
 
-.level-card-showcase--empty {
-  min-width: 0;
-  width: 0;
-  overflow: hidden;
-}
-
 .level-card-showcase__button {
   display: inline-flex;
   align-items: center;
@@ -209,22 +203,38 @@
   border-radius: var(--radius);
   background: var(--color-surface-inset);
   box-shadow: var(--shadow-panel-sm);
+  box-sizing: border-box;
   color: var(--color-text-on-dark);
   font-family: var(--font-display);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
 }
 
-.level-card-showcase__button:hover {
+.level-card-showcase__button:hover:not(:disabled) {
   background: var(--color-accent);
   color: var(--color-text);
   transform: translate(2px, 2px);
   box-shadow: none;
+}
+
+.level-card-showcase__button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.level-card-showcase__error {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-error);
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .level-card-actions {
@@ -497,8 +507,7 @@
     align-items: stretch;
   }
 
-  .level-card-showcase,
-  .level-card-showcase--empty {
+  .level-card-showcase {
     width: 100%;
     min-width: 0;
   }

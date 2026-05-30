@@ -26,8 +26,6 @@ pub struct BoardLevel {
     pub tags: Vec<String>,
     pub list_page_url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub showcase_video_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub clan_verification_video_url: Option<String>,
     pub completion: CompletionInfo,
     pub claim: ClaimInfo,

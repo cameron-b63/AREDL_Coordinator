@@ -62,6 +62,14 @@ export function fetchBoard(excludeLegacy = true) {
   return apiFetch<import('./types/board').BoardResponse>(`/api/board${query}`);
 }
 
+export interface ShowcaseVideoResponse {
+  videoUrl: string;
+}
+
+export function fetchShowcaseVideo(levelId: string) {
+  return apiFetch<ShowcaseVideoResponse>(`/api/levels/${encodeURIComponent(levelId)}/showcase`);
+}
+
 export async function fetchMe(): Promise<import('./types/user').User | null> {
   let response: Response;
   try {

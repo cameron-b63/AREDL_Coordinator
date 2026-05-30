@@ -1,7 +1,7 @@
 mod client;
 mod types;
 
-pub use client::{fetch_clan_profile, fetch_levels, fetch_showcase_videos, UpstreamError};
+pub use client::{fetch_clan_profile, fetch_level_showcase, fetch_levels, UpstreamError};
 pub use types::{ClanProfile, UpstreamLevel};
 
 pub fn user_avatar_url(discord_id: &str, discord_avatar: Option<&str>) -> Option<String> {

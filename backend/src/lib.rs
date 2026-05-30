@@ -10,6 +10,7 @@ mod stats;
 use cors::{cors_allow_origin, with_cors};
 use routes::{
     aredl_levels, aredl_ping, board, discord_callback, discord_login, discord_logout, health, me,
+    level_showcase,
 };
 use worker::*;
 
@@ -28,6 +29,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .get_async("/api/aredl/ping", aredl_ping)
         .get_async("/api/aredl/levels", aredl_levels)
         .get_async("/api/board", board)
+        .get_async("/api/levels/:level_id/showcase", level_showcase)
         .get_async("/auth/discord", discord_login)
         .get_async("/auth/discord/callback", discord_callback)
         .get_async("/auth/logout", discord_logout)

@@ -31,7 +31,6 @@ pub fn build_board(
     levels: Vec<UpstreamLevel>,
     clan: ClanProfile,
     claims: Vec<ClaimRow>,
-    showcase_videos: HashMap<String, String>,
 ) -> BoardResponse {
     let mut completions: HashMap<String, LevelCompletion> = HashMap::new();
     let mut clan_verification_videos: HashMap<String, String> = HashMap::new();
@@ -97,7 +96,6 @@ pub fn build_board(
         .map(|level| {
             let tags = normalize_tags(level.tags);
             let list_page_url = list_page_url(level.level_id, level.two_player);
-            let showcase_video_url = showcase_videos.get(&level.id).cloned();
 
             let completion = match completions.get(&level.id) {
                 Some(entry) => {
@@ -138,7 +136,6 @@ pub fn build_board(
                 two_player: level.two_player,
                 tags,
                 list_page_url,
-                showcase_video_url,
                 clan_verification_video_url,
                 completion,
                 claim: ClaimInfo {
