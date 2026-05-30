@@ -5,11 +5,13 @@ import {
 } from '../../lib/types/claim';
 
 interface ClaimMenuProps {
-  disabled?: boolean;
+  signedIn: boolean;
 }
 
-export function ClaimMenu({ disabled = true }: ClaimMenuProps) {
+export function ClaimMenu({ signedIn }: ClaimMenuProps) {
   const [selection, setSelection] = useState<ClaimKind>('claimed');
+  const disabled = !signedIn;
+  const hint = signedIn ? 'Coming soon' : 'Sign in to claim';
 
   return (
     <div class="claim-menu">
@@ -30,7 +32,7 @@ export function ClaimMenu({ disabled = true }: ClaimMenuProps) {
           ))}
         </select>
       </label>
-      <button class="claim-menu__submit" type="button" disabled={disabled} title="Coming soon">
+      <button class="claim-menu__submit" type="button" disabled={disabled} title={hint}>
         Submit
       </button>
     </div>

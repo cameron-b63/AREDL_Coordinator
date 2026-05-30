@@ -21,7 +21,12 @@ export function App() {
         />
       }
     >
-      <LevelList levels={filteredLevels} loading={loading} error={error} />
+      <LevelList
+        levels={filteredLevels}
+        loading={loading}
+        signedIn={user !== null && user !== undefined}
+        error={error}
+      />
     </AppLayout>
   );
 }

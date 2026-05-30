@@ -1,6 +1,6 @@
 use crate::env;
 use serde::{Deserialize, Serialize};
-use worker::{Cache, Fetch, Headers, Method, Request, Response, Result, RouteContext};
+use worker::{Cache, Fetch, Method, Request, Response, Result, RouteContext};
 
 const CACHE_TTL_SECONDS: u32 = 900;
 
@@ -48,13 +48,12 @@ fn parse_exclude_legacy(req: &Request) -> Result<bool> {
 }
 
 fn build_levels_response(summary: &Vec<LevelSummary>) -> Result<Response> {
-    let headers = Headers::new();
-    headers.set("Content-Type", "application/json; charset=utf-8")?;
-    headers.set(
+    let mut response = Response::from_json(summary)?;
+    response.headers_mut().set(
         "Cache-Control",
         &format!("public, max-age={CACHE_TTL_SECONDS}, s-maxage={CACHE_TTL_SECONDS}"),
     )?;
-    Ok(Response::from_json(summary)?.with_headers(headers))
+    Ok(response)
 }
 
 pub async fn aredl_levels(req: Request, ctx: RouteContext<()>) -> Result<Response> {

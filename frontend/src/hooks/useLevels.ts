@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { fetchLevels } from '../lib/api';
+import { fetchLevels, ApiError } from '../lib/api';
 import type { Level } from '../lib/types/level';
 
 export type LevelsState =
@@ -24,7 +24,17 @@ export function useLevels() {
         setState({ status: 'ready', levels });
       } catch (error) {
         if (cancelled) return;
-        const message = error instanceof Error ? error.message : 'Failed to load levels';
+        let message = 'Failed to load levels';
+        if (error instanceof ApiError) {
+          message =
+            error.status === 502
+              ? 'AREDL API is temporarily unavailable. Try again shortly.'
+              : error.status === 0
+                ? error.message
+                : `Server error (${error.status}). Try again shortly.`;
+        } else if (error instanceof Error) {
+          message = error.message;
+        }
         setState({
           status: 'error',
           message,

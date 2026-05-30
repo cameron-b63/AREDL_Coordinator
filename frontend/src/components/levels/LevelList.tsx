@@ -9,10 +9,11 @@ const ITEM_GAP = 20;
 interface LevelListProps {
   levels: Level[];
   loading: boolean;
+  signedIn: boolean;
   error: { message: string; retry: () => void } | null;
 }
 
-export function LevelList({ levels, loading, error }: LevelListProps) {
+export function LevelList({ levels, loading, signedIn, error }: LevelListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -86,7 +87,7 @@ export function LevelList({ levels, loading, error }: LevelListProps) {
         >
           {visibleLevels.map((level) => (
             <div key={level.id} class="level-list__item">
-              <LevelCard level={level} />
+              <LevelCard level={level} signedIn={signedIn} />
             </div>
           ))}
         </div>

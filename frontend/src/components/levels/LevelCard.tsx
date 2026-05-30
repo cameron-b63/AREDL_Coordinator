@@ -4,9 +4,10 @@ import { ClaimMenu } from './ClaimMenu';
 
 interface LevelCardProps {
   level: Level;
+  signedIn: boolean;
 }
 
-export function LevelCard({ level }: LevelCardProps) {
+export function LevelCard({ level, signedIn }: LevelCardProps) {
   const statusLine = formatStatusLine(defaultAssignment());
 
   return (
@@ -15,7 +16,7 @@ export function LevelCard({ level }: LevelCardProps) {
         <h2 class="level-card__title">{formatLevelTitle(level)}</h2>
         <p class="level-card__status">{statusLine}</p>
       </div>
-      <ClaimMenu />
+      <ClaimMenu signedIn={signedIn} />
     </article>
   );
 }

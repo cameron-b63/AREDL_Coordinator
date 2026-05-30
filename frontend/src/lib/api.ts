@@ -11,7 +11,12 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, init);
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, init);
+  } catch {
+    throw new ApiError('Network request failed — check your connection and try again.', 0);
+  }
 
   if (!response.ok) {
     throw new ApiError(`${path} returned ${response.status}`, response.status);
@@ -44,14 +49,19 @@ export function fetchLevels(excludeLegacy = true) {
 }
 
 export async function fetchMe(): Promise<import('./types/user').User | null> {
-  const response = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
+  } catch {
+    return null;
+  }
 
   if (response.status === 401) {
     return null;
   }
 
   if (!response.ok) {
-    throw new ApiError(`/api/me returned ${response.status}`, response.status);
+    return null;
   }
 
   const data = (await response.json()) as import('./types/user').MeResponse;
