@@ -168,8 +168,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  min-width: var(--header-control-height);
+  min-height: var(--header-control-height);
   padding: 0;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);

@@ -66,6 +66,7 @@
   top: 100%;
   left: var(--space-5);
   z-index: 3;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -118,6 +119,11 @@
   padding-bottom: var(--space-6);
   background: var(--color-surface);
   border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.app-main__progress--stats-open .clan-progress__outcrop {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .header {

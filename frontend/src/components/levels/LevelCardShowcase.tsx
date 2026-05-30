@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { ExternalLinkIcon } from '../ui/ExternalLinkIcon';
 import { ApiError, fetchShowcaseVideo } from '../../lib/api';
 import type { BoardLevel } from '../../lib/types/board';
 
@@ -46,7 +47,8 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
         title={error ?? 'Watch the official level showcase'}
         onClick={openShowcase}
       >
-        {label}
+        <span>{label}</span>
+        <ExternalLinkIcon />
       </button>
       {error && !loading ? (
         <span class="level-card-showcase__error" role="alert">

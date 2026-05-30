@@ -86,6 +86,7 @@
 
 .level-card--completed {
   background: var(--color-surface-completed);
+  opacity: 0.75;
 }
 
 .level-card--completed::before,
@@ -115,15 +116,11 @@
 }
 
 .level-card__info {
-  min-width: 0;
-  padding-top: var(--space-1);
-}
-
-.level-card__aside {
   display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  min-width: 0;
 }
 
 .level-card__title {
@@ -185,20 +182,37 @@
   color: var(--color-text-on-dark);
 }
 
-.level-card-showcase {
+.level-card__aside {
   display: flex;
   flex-shrink: 0;
   align-items: center;
+  justify-content: flex-end;
+  align-self: center;
+}
+
+.external-link-icon {
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.level-card-showcase {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
   justify-content: center;
-  min-width: 6.5rem;
+  justify-self: center;
+  align-self: center;
 }
 
 .level-card-showcase__button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
-  padding: 0 var(--space-4);
+  gap: var(--space-2);
+  min-height: var(--card-showcase-height);
+  padding: 0 var(--space-5);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface-inset);
@@ -206,7 +220,7 @@
   box-sizing: border-box;
   color: var(--color-text-on-dark);
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -244,14 +258,15 @@
   align-items: stretch;
   justify-content: center;
   gap: var(--space-2);
-  min-width: 6.5rem;
+  min-width: 7rem;
 }
 
 .level-card-actions__button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
+  gap: var(--space-2);
+  min-height: var(--card-action-height);
   padding: 0 var(--space-3);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
@@ -302,7 +317,7 @@
   align-items: center;
   gap: var(--space-2);
   max-width: 100%;
-  min-height: 2.25rem;
+  min-height: var(--card-action-height);
 }
 
 .assignee-status__label {
@@ -318,7 +333,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 2.25rem;
+  height: var(--card-action-height);
   margin-left: 0.75rem;
   max-width: min(100%, 14rem);
 }
@@ -327,7 +342,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 2.25rem;
+  height: var(--card-action-height);
   max-width: 100%;
   padding: 0 var(--space-4) 0 calc(var(--space-4) + 1.25rem);
   border: var(--border-width) solid var(--color-border);
@@ -357,8 +372,8 @@
 
 .assignee-bubble__avatar {
   display: block;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--card-action-height);
+  height: var(--card-action-height);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface-inset);
@@ -436,12 +451,12 @@
 .level-card .claim-menu__select,
 .level-card .claim-menu__submit,
 .level-card .claim-menu__remove {
-  min-height: 2.25rem;
+  min-height: var(--card-action-height);
 }
 
 .claim-menu__select,
 .claim-menu__submit {
-  min-height: 2.75rem;
+  min-height: var(--card-action-height);
   border-radius: var(--radius);
   font-family: var(--font-body);
   font-size: 0.9375rem;
@@ -488,7 +503,7 @@
 }
 
 .claim-menu__remove {
-  min-height: 2.75rem;
+  min-height: var(--card-action-height);
   padding: 0 var(--space-4);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);

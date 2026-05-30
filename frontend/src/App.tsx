@@ -79,7 +79,7 @@ export function App() {
           </button>
         </div>
       ) : null}
-      <div class="app-main__progress">
+      <div class={`app-main__progress${statsOpen ? ' app-main__progress--stats-open' : ''}`}>
         <ClanProgress summary={summary} loading={loading} />
       </div>
       <ContentSplit

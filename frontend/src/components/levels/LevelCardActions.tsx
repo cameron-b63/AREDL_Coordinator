@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from '../ui/ExternalLinkIcon';
 import type { BoardLevel } from '../../lib/types/board';
 
 interface LevelCardActionsProps {
@@ -17,7 +18,8 @@ export function LevelCardActions({ level }: LevelCardActionsProps) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Completion
+          <span>Completion</span>
+          <ExternalLinkIcon />
         </a>
       ) : null}
       {verificationUrl ? (
