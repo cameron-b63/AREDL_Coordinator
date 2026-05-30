@@ -21,6 +21,10 @@ pub struct BoardLevel {
     pub position: i32,
     pub name: String,
     pub points: i32,
+    pub game_level_id: i32,
+    pub two_player: bool,
+    pub tags: Vec<String>,
+    pub verification_url: String,
     pub completion: CompletionInfo,
     pub claim: ClaimInfo,
 }
@@ -31,6 +35,8 @@ pub struct CompletionInfo {
     pub state: CompletionState,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub by: Option<Completer>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video_url: Option<String>,
 }
 
 #[derive(Serialize)]

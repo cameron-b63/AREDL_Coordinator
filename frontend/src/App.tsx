@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import { AppLayout } from './components/layout/AppLayout';
 import { ClanProgress } from './components/layout/ClanProgress';
 import { ContentSplit } from './components/layout/ContentSplit';
 import { Header } from './components/layout/Header';
 import { PlayerStatsPanel } from './components/layout/PlayerStatsPanel';
+import { StatsDrawer } from './components/layout/StatsDrawer';
 import { FiltersPanel } from './components/filters/FiltersPanel';
 import { LevelList } from './components/levels/LevelList';
 import { useAuth } from './hooks/useAuth';
@@ -13,6 +14,7 @@ import { consumeAuthErrorFromUrl } from './lib/authError';
 
 export function App() {
   const [authError, setAuthError] = useState<string | null>(null);
+  const [statsOpen, setStatsOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -29,19 +31,38 @@ export function App() {
     user ?? null,
   );
 
+  const boardLevels = state.status === 'ready' ? state.levels : [];
+
+  const toggleStats = useCallback(() => {
+    setStatsOpen((open) => {
+      if (!open) closeFilters();
+      return !open;
+    });
+  }, [closeFilters]);
+
+  const closeStats = useCallback(() => {
+    setStatsOpen(false);
+  }, []);
+
+  const handleToggleFilters = useCallback(() => {
+    if (!filtersOpen) setStatsOpen(false);
+    toggleFilters();
+  }, [filtersOpen, toggleFilters]);
+
   const loading = state.status === 'loading';
   const error = state.status === 'error' ? state : null;
 
   return (
     <AppLayout
-      progress={<ClanProgress summary={summary} loading={loading} />}
       header={
         <Header
           searchQuery={query}
           onSearchChange={setQuery}
           user={user}
           filtersOpen={filtersOpen}
-          onToggleFilters={toggleFilters}
+          onToggleFilters={handleToggleFilters}
+          statsOpen={statsOpen}
+          onToggleStats={toggleStats}
         />
       }
     >
@@ -58,19 +79,29 @@ export function App() {
           </button>
         </div>
       ) : null}
+      <div class="app-main__progress">
+        <ClanProgress summary={summary} loading={loading} />
+      </div>
       <ContentSplit
-        open={filtersOpen}
-        stats={user ? <PlayerStatsPanel user={user} /> : null}
+        filtersOpen={filtersOpen}
+        statsOpen={statsOpen}
         list={
           <LevelList
             levels={filteredLevels}
             loading={loading}
             signedIn={signedIn}
-            layoutKey={`${filtersOpen ? 'open' : 'closed'}-${user ? 'in' : 'out'}`}
+            layoutKey={`${filtersOpen ? 'open' : 'closed'}-${statsOpen ? 'stats' : 'nostats'}-${user ? 'in' : 'out'}`}
             error={error}
           />
         }
-        panel={
+        statsPanel={
+          user ? (
+            <StatsDrawer id="stats-panel" open={statsOpen} onClose={closeStats}>
+              <PlayerStatsPanel user={user} levels={boardLevels} />
+            </StatsDrawer>
+          ) : null
+        }
+        filtersPanel={
           <FiltersPanel
             id="filters-panel"
             open={filtersOpen}

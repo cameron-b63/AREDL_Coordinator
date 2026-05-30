@@ -9,6 +9,7 @@ export interface Completer {
 export interface CompletionInfo {
   state: CompletionState;
   by?: Completer;
+  videoUrl?: string;
 }
 
 export interface ClaimInfo {
@@ -26,6 +27,10 @@ export interface BoardLevel {
   position: number;
   name: string;
   points: number;
+  gameLevelId: number;
+  twoPlayer: boolean;
+  tags: string[];
+  verificationUrl: string;
   completion: CompletionInfo;
   claim: ClaimInfo;
 }

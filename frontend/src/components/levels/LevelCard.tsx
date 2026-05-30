@@ -1,6 +1,10 @@
+import { useState } from 'preact/hooks';
+import { copyToClipboard, isFinePointerDevice } from '../../lib/copyToClipboard';
 import type { BoardLevel } from '../../lib/types/board';
+import { levelIsCompleted } from '../../lib/types/board';
 import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
+import { LevelCardActions } from './LevelCardActions';
 
 interface LevelCardProps {
   level: BoardLevel;
@@ -8,9 +12,19 @@ interface LevelCardProps {
 }
 
 export function LevelCard({ level, signedIn }: LevelCardProps) {
-  const completed = level.completion.state === 'completed';
+  const completed = levelIsCompleted(level);
   const username = level.completion.by?.username ?? 'Nobody Yet';
   const avatarUrl = level.completion.by?.avatarUrl ?? null;
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyId() {
+    if (!isFinePointerDevice()) return;
+    const ok = await copyToClipboard(String(level.gameLevelId));
+    if (ok) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    }
+  }
 
   return (
     <article class={`level-card${completed ? ' level-card--completed' : ''}`}>
@@ -19,6 +33,14 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           <span class="level-card__rank">#{level.position}</span>
           <span class="level-card__dash"> - </span>
           <span class="level-card__name">{level.name}</span>
+          <button
+            type="button"
+            class="level-card__id"
+            title={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
+            onClick={handleCopyId}
+          >
+            ({level.gameLevelId})
+          </button>
         </h2>
         <AssigneeBubble
           verb="Completed"
@@ -27,11 +49,15 @@ export function LevelCard({ level, signedIn }: LevelCardProps) {
           completed={completed}
         />
       </div>
-      <ClaimMenu
-        signedIn={signedIn}
-        menuEnabled={level.claim.menuEnabled}
-        hasActiveClaim={level.claim.active !== null}
-      />
+      {completed ? (
+        <LevelCardActions level={level} />
+      ) : (
+        <ClaimMenu
+          signedIn={signedIn}
+          menuEnabled={level.claim.menuEnabled}
+          hasActiveClaim={level.claim.active !== null}
+        />
+      )}
     </article>
   );
 }

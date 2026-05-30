@@ -11,6 +11,19 @@ use super::types::{
 struct LevelCompletion {
     achieved_at: String,
     completer: Completer,
+    video_url: String,
+}
+
+fn normalize_tags(tags: Vec<Option<String>>) -> Vec<String> {
+    tags.into_iter().flatten().collect()
+}
+
+fn verification_url(game_level_id: i32, two_player: bool) -> String {
+    if two_player {
+        format!("https://aredl.net/list/{game_level_id}_2p")
+    } else {
+        format!("https://aredl.net/list/{game_level_id}")
+    }
 }
 
 /// When multiple clan members completed the same level, keep the most recent `achieved_at`.
@@ -22,6 +35,10 @@ pub fn build_board(
     let mut completions: HashMap<String, LevelCompletion> = HashMap::new();
 
     for record in clan.records {
+        if record.is_verification {
+            continue;
+        }
+
         let level_id = record.level.id;
         let completer = Completer {
             username: user_display_name(
@@ -43,6 +60,7 @@ pub fn build_board(
                     LevelCompletion {
                         achieved_at: record.achieved_at,
                         completer,
+                        video_url: record.video_url,
                     },
                 );
             }
@@ -71,17 +89,22 @@ pub fn build_board(
     let board_levels: Vec<BoardLevel> = levels
         .into_iter()
         .map(|level| {
+            let tags = normalize_tags(level.tags);
+            let verification_url = verification_url(level.level_id, level.two_player);
+
             let completion = match completions.get(&level.id) {
                 Some(entry) => {
                     completed_count += 1;
                     CompletionInfo {
                         state: CompletionState::Completed,
                         by: Some(entry.completer.clone()),
+                        video_url: Some(entry.video_url.clone()),
                     }
                 }
                 None => CompletionInfo {
                     state: CompletionState::Uncompleted,
                     by: None,
+                    video_url: None,
                 },
             };
 
@@ -93,6 +116,10 @@ pub fn build_board(
                 position: level.position,
                 name: level.name,
                 points: level.points,
+                game_level_id: level.level_id,
+                two_player: level.two_player,
+                tags,
+                verification_url,
                 completion,
                 claim: ClaimInfo {
                     menu_enabled,

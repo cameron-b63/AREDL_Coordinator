@@ -1,18 +1,29 @@
 import type { ComponentChildren } from 'preact';
 
 interface ContentSplitProps {
-  open: boolean;
-  stats: ComponentChildren;
+  filtersOpen: boolean;
+  statsOpen: boolean;
   list: ComponentChildren;
-  panel: ComponentChildren;
+  filtersPanel: ComponentChildren;
+  statsPanel: ComponentChildren;
 }
 
-export function ContentSplit({ open, stats, list, panel }: ContentSplitProps) {
+export function ContentSplit({
+  filtersOpen,
+  statsOpen,
+  list,
+  filtersPanel,
+  statsPanel,
+}: ContentSplitProps) {
+  const panelOpen = filtersOpen || statsOpen;
+
   return (
-    <div class={`content-split${open ? ' content-split--open' : ''}`}>
-      {stats}
+    <div
+      class={`content-split${panelOpen ? ' content-split--open' : ''}${statsOpen ? ' content-split--stats-open' : ''}${filtersOpen ? ' content-split--filters-open' : ''}`}
+    >
       <div class="content-split__list">{list}</div>
-      {panel}
+      {statsPanel}
+      {filtersPanel}
     </div>
   );
 }

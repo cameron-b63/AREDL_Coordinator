@@ -7,6 +7,12 @@ pub struct UpstreamLevel {
     pub position: i32,
     #[serde(default)]
     pub points: i32,
+    #[serde(default)]
+    pub level_id: i32,
+    #[serde(default)]
+    pub two_player: bool,
+    #[serde(default)]
+    pub tags: Vec<Option<String>>,
 }
 
 /// `GET /aredl/clan/{id}` — clan profile with completed records.
@@ -20,6 +26,9 @@ pub struct ClanRecord {
     pub level: ClanRecordLevel,
     pub submitted_by: ClanRecordUser,
     pub achieved_at: String,
+    pub video_url: String,
+    #[serde(default)]
+    pub is_verification: bool,
 }
 
 #[derive(Debug, Deserialize)]

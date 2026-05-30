@@ -11,7 +11,7 @@ pub fn viewer_stats_from_clan(clan: &ClanProfile, discord_id: &str) -> ViewerSta
     let mut points_earned = 0i32;
 
     for record in &clan.records {
-        if record.submitted_by.discord_id != discord_id {
+        if record.is_verification || record.submitted_by.discord_id != discord_id {
             continue;
         }
         levels_contributed += 1;

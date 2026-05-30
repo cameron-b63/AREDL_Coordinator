@@ -15,7 +15,7 @@ struct ErrorResponse {
 
 fn cache_key(exclude_legacy: bool, clan_id: &str) -> String {
     format!(
-        "https://aredl-coordinator.internal/cache/board?exclude_legacy={exclude_legacy}&clan_id={clan_id}"
+        "https://aredl-coordinator.internal/cache/board?v=2&exclude_legacy={exclude_legacy}&clan_id={clan_id}"
     )
 }
 

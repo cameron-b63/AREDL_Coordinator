@@ -4,12 +4,11 @@ import { useParallax } from '../../hooks/useParallax';
 import { ParallaxBackground } from './ParallaxBackground';
 
 interface AppLayoutProps {
-  progress: ComponentChildren;
   header: ComponentChildren;
   children: ComponentChildren;
 }
 
-export function AppLayout({ progress, header, children }: AppLayoutProps) {
+export function AppLayout({ header, children }: AppLayoutProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const parallaxOffset = useParallax(mainRef, 0.08);
 
@@ -17,7 +16,6 @@ export function AppLayout({ progress, header, children }: AppLayoutProps) {
     <div class="app-shell">
       <ParallaxBackground offset={parallaxOffset} />
       <div class="app-chrome">
-        {progress}
         <header class="app-header">{header}</header>
       </div>
       <div ref={mainRef} class="app-main">
