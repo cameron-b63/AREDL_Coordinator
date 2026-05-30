@@ -430,6 +430,17 @@
   font-weight: 700;
 }
 
+.assignee-bubble__avatar--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-muted-on-dark) 30%, var(--color-surface-inset));
+  color: var(--color-muted-on-dark);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 .assignee-bubble__name {
   overflow: hidden;
   max-width: 10rem;

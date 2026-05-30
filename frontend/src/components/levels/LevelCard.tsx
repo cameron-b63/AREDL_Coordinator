@@ -113,7 +113,7 @@ export function LevelCard({ level, user, signedIn, onClaimChange }: LevelCardPro
           avatarUrl={avatarUrl}
           completed={showCompletedStyle}
           strengthClass={strengthClass}
-          showAvatar={completed || activeClaim !== null}
+          showAvatar={completed || activeClaim !== null || username === 'Nobody Yet'}
         />
       </div>
       <div class="level-card__aside">

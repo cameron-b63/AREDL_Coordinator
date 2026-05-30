@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { ClaimsSqlBrowser } from '../components/admin/ClaimsSqlBrowser';
 import { AppLayout } from '../components/layout/AppLayout';
 import { Header } from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
@@ -51,7 +52,7 @@ export function AdminPortal() {
         />
       }
     >
-      <div class="admin-portal">
+      <div class={`admin-portal${authorized ? ' admin-portal--wide' : ''}`}>
         <h1 class="admin-portal__title">Admin Portal</h1>
 
         {user === undefined ? (
@@ -80,6 +81,10 @@ export function AdminPortal() {
               </button>
               {result ? <p class="admin-portal__success">{result}</p> : null}
               {error ? <p class="admin-portal__error">{error}</p> : null}
+            </section>
+            <section class="admin-portal__section admin-portal__section--sql">
+              <h2 class="admin-portal__section-title">Claims SQL browser</h2>
+              <ClaimsSqlBrowser />
             </section>
             <p class="admin-portal__footer">
               <a class="admin-portal__link" href={homePath()}>

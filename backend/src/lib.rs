@@ -9,7 +9,8 @@ mod stats;
 
 use cors::{cors_allow_origin, with_cors};
 use routes::{
-    admin_prune_claims, admin_reset_claim, aredl_levels, aredl_ping, board, discord_callback,
+    admin_execute_claims_sql, admin_prune_claims, admin_reset_claim, aredl_levels, aredl_ping,
+    board, discord_callback,
     discord_login, discord_logout, health, me, level_showcase, remove_claim, submit_claim,
 };
 use worker::*;
@@ -34,6 +35,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .delete_async("/api/claims/:level_id", remove_claim)
         .delete_async("/api/admin/claims/:level_id", admin_reset_claim)
         .post_async("/api/admin/prune-claims", admin_prune_claims)
+        .post_async("/api/admin/claims/sql", admin_execute_claims_sql)
         .get_async("/auth/discord", discord_login)
         .get_async("/auth/discord/callback", discord_callback)
         .get_async("/auth/logout", discord_logout)

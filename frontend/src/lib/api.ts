@@ -157,4 +157,27 @@ export function adminPruneClaims() {
   });
 }
 
+export interface ClaimsSqlQueryResult {
+  kind: 'query';
+  columns: string[];
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  truncated?: boolean;
+}
+
+export interface ClaimsSqlMutationResult {
+  kind: 'mutation';
+  changes: number;
+}
+
+export type ClaimsSqlResult = ClaimsSqlQueryResult | ClaimsSqlMutationResult;
+
+export function adminExecuteClaimsSql(sql: string) {
+  return apiFetch<ClaimsSqlResult>('/api/admin/claims/sql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sql }),
+  });
+}
+
 export { API_URL };

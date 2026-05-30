@@ -1,9 +1,10 @@
+import { DISCORD_GUILD_ICON_URL } from '../../lib/site';
+import type { User } from '../../lib/types/user';
 import { SignInButton } from '../auth/SignInButton';
 import { UserBadge } from '../auth/UserBadge';
 import { FiltersButton } from '../ui/FiltersButton';
 import { SearchBar } from '../ui/SearchBar';
 import { StatsMenuButton } from '../ui/StatsMenuButton';
-import type { User } from '../../lib/types/user';
 
 interface HeaderProps {
   searchQuery: string;
@@ -42,8 +43,17 @@ export function Header({
       </div>
       <div class="header__center">
         <h1 class="header__brand">
-          <span class="header__nsh">NSH</span>
-          <span class="header__title">Beats the AREDL</span>
+          <img
+            class="header__guild-icon"
+            src={DISCORD_GUILD_ICON_URL}
+            alt=""
+            width={44}
+            height={44}
+          />
+          <span class="header__brand-text">
+            <span class="header__nsh">NSH</span>
+            <span class="header__title">Beats the AREDL</span>
+          </span>
         </h1>
         {!adminPage ? (
           <>

@@ -16,6 +16,7 @@ export function AssigneeBubble({
   strengthClass,
   showAvatar = completed,
 }: AssigneeBubbleProps) {
+  const isUnknownAssignee = username === 'Nobody Yet';
   const initials = username.slice(0, 1).toUpperCase();
   const bubbleClass = [
     'assignee-bubble',
@@ -37,6 +38,13 @@ export function AssigneeBubble({
           <span class="assignee-bubble__avatar-wrap">
             {avatarUrl ? (
               <img class="assignee-bubble__avatar" src={avatarUrl} alt="" />
+            ) : isUnknownAssignee ? (
+              <span
+                class="assignee-bubble__avatar assignee-bubble__avatar--placeholder"
+                aria-hidden="true"
+              >
+                ?
+              </span>
             ) : (
               <span class="assignee-bubble__avatar assignee-bubble__avatar--fallback">
                 {initials}
