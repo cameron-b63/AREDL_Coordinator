@@ -10,6 +10,7 @@ export interface CompletionInfo {
   state: CompletionState;
   by?: Completer;
   videoUrl?: string;
+  isVerification?: boolean;
 }
 
 export interface ClaimInfo {

@@ -28,7 +28,7 @@ export function LevelCard({ level, user, signedIn, onClaimChange }: LevelCardPro
   const [copied, setCopied] = useState(false);
   const [resetting, setResetting] = useState(false);
 
-  let verb = 'Completed';
+  let verb = level.completion.isVerification ? 'Verified' : 'Completed';
   let username = 'Nobody Yet';
   let avatarUrl: string | null = null;
   let showCompletedStyle = completed;

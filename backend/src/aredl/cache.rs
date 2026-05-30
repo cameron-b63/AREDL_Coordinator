@@ -39,7 +39,8 @@ pub async fn level_has_clan_completion(env: &Env, level_id: &str) -> Result<bool
         .await
         .map_err(|err| worker::Error::RustError(err.to_string()))?;
 
-    Ok(clan.records.iter().any(|record| {
-        !record.is_verification && record.level.id == level_id
-    }))
+    Ok(clan
+        .records
+        .iter()
+        .any(|record| record.level.id == level_id))
 }

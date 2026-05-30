@@ -6,26 +6,29 @@ interface LevelCardActionsProps {
 }
 
 export function LevelCardActions({ level }: LevelCardActionsProps) {
-  const completionUrl = level.completion.videoUrl;
-  const verificationUrl = level.clanVerificationVideoUrl;
+  const videoUrl = level.completion.videoUrl;
+  const isVerification = level.completion.isVerification === true;
+  const secondaryVerificationUrl = level.clanVerificationVideoUrl;
 
   return (
     <div class="level-card-actions">
-      {completionUrl ? (
+      {videoUrl ? (
         <a
-          class="level-card-actions__button level-card-actions__button--completion"
-          href={completionUrl}
+          class={`level-card-actions__button level-card-actions__button--${
+            isVerification ? 'verification' : 'completion'
+          }`}
+          href={videoUrl}
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span>Completion</span>
+          <span>{isVerification ? 'Verification' : 'Completion'}</span>
           <ExternalLinkIcon />
         </a>
       ) : null}
-      {verificationUrl ? (
+      {secondaryVerificationUrl ? (
         <a
           class="level-card-actions__link"
-          href={verificationUrl}
+          href={secondaryVerificationUrl}
           target="_blank"
           rel="noopener noreferrer"
         >

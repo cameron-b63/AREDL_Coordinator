@@ -302,7 +302,8 @@
   box-shadow: none;
 }
 
-.level-card-actions__button--completion {
+.level-card-actions__button--completion,
+.level-card-actions__button--verification {
   background: var(--color-surface-raised);
 }
 

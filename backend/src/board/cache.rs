@@ -2,7 +2,7 @@ use crate::env;
 use worker::{Cache, Env, Result};
 
 const CACHE_TTL_SECONDS: u32 = 900;
-const BOARD_CACHE_VERSION: &str = "v=7";
+const BOARD_CACHE_VERSION: &str = "v=8";
 
 pub fn board_cache_key(exclude_legacy: bool, clan_id: &str) -> String {
     format!(

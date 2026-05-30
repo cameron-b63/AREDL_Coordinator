@@ -4,7 +4,7 @@ mod types;
 
 pub use cache::{fetch_clan_profile_cached, level_has_clan_completion};
 pub use client::{fetch_clan_profile, fetch_level_showcase, fetch_levels, UpstreamError};
-pub use types::{ClanProfile, UpstreamLevel};
+pub use types::{ClanProfile, ClanRecord, ClanRecordLevel, ClanRecordUser, UpstreamLevel};
 
 pub fn user_avatar_url(discord_id: &str, discord_avatar: Option<&str>) -> Option<String> {
     match discord_avatar {

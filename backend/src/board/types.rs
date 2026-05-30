@@ -39,6 +39,12 @@ pub struct CompletionInfo {
     pub by: Option<Completer>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_url: Option<String>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub is_verification: bool,
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 #[derive(Serialize)]
