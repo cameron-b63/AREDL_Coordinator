@@ -24,8 +24,9 @@ install: ## Install frontend and backend npm dependencies
 	$(NPM) ci --prefix $(FRONTEND_DIR)
 	$(NPM) ci --prefix $(BACKEND_DIR)
 
-setup-rust: ## Add wasm32 target for Worker builds
+setup-rust: ## Add wasm32 target and worker-build for deploys
 	rustup target add $(WASM_TARGET)
+	cargo install worker-build --locked
 
 dev: ## Run backend and frontend dev servers in parallel
 	@echo "Backend: http://localhost:8787"
@@ -49,10 +50,10 @@ build-frontend: ## Build frontend for production
 check: build ## Alias for build (compile/typecheck everything)
 
 migrate-local: ## Apply D1 migrations to local dev database
-	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --local
+	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --local -c wrangler.toml
 
 migrate-remote: ## Apply D1 migrations to production database
-	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --remote
+	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --remote -c wrangler.toml
 
 deploy-backend: migrate-remote ## Deploy Worker to Cloudflare
 	$(NPM) run deploy --prefix $(BACKEND_DIR)

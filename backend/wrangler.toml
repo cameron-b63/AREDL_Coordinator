@@ -3,7 +3,7 @@ main = "build/worker/shim.mjs"
 compatibility_date = "2025-10-11"
 
 [build]
-command = "cargo install -q worker-build && worker-build --release"
+command = "worker-build --release"
 
 [vars]
 FRONTEND_ORIGIN = "https://cameron-b63.github.io/AREDL_Coordinator"
