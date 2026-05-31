@@ -49,12 +49,23 @@ jobs:
           workingDirectory: backend
           command: d1 migrations apply DB --remote -c wrangler.toml
 
-      - uses: cloudflare/wrangler-action@v3
+      # Deploy first, then sync secrets. Uploading secrets before deploy fails with
+      # Cloudflare error 10215 when Worker versions are enabled (latest version not deployed).
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: backend
           command: deploy -c wrangler.toml
+
+      - name: Sync Worker secrets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: backend
+          command: whoami
           secrets: |
             DISCORD_CLIENT_ID
             DISCORD_CLIENT_SECRET
