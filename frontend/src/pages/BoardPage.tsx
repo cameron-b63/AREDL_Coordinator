@@ -10,6 +10,7 @@ import { LevelList } from '../components/levels/LevelList';
 import { useAuth } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
 import { useLevels } from '../hooks/useLevels';
+import { useSortDirection } from '../hooks/useSortDirection';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
 import { filtersAreActive } from '../lib/types/filters';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
@@ -28,9 +29,11 @@ export function BoardPage() {
   }, []);
 
   const { filtersOpen, toggleFilters, closeFilters, filters, setFilter } = useFilters();
+  const { sortDirection, toggleSortDirection } = useSortDirection();
   const signedIn = user !== null && user !== undefined;
   const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
     filters,
+    sortDirection,
     user ?? null,
   );
 
@@ -123,6 +126,8 @@ export function BoardPage() {
             user={user ?? null}
             filters={filters}
             onFilterChange={setFilter}
+            sortDirection={sortDirection}
+            onToggleSortDirection={toggleSortDirection}
             onClose={closeFilters}
           />
         }

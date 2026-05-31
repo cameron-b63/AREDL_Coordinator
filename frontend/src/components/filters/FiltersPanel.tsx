@@ -1,9 +1,11 @@
+import { SortDirectionIcon } from '../ui/SortDirectionIcon';
 import { CLAIM_OPTIONS } from '../../lib/types/claim';
 import {
   toggleBoardClaimKind,
   type LevelFilters,
 } from '../../lib/types/filters';
 import type { ClaimKind } from '../../lib/types/claim';
+import type { SortDirection } from '../../lib/types/sort';
 import type { User } from '../../lib/types/user';
 
 interface FiltersPanelProps {
@@ -13,6 +15,8 @@ interface FiltersPanelProps {
   user: User | null;
   filters: LevelFilters;
   onFilterChange: <K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => void;
+  sortDirection: SortDirection;
+  onToggleSortDirection: () => void;
   onClose: () => void;
 }
 
@@ -30,6 +34,8 @@ export function FiltersPanel({
   user,
   filters,
   onFilterChange,
+  sortDirection,
+  onToggleSortDirection,
   onClose,
 }: FiltersPanelProps) {
   const myFiltersDisabled = !signedIn;
@@ -47,14 +53,29 @@ export function FiltersPanel({
     <aside id={id} class="filters-panel" aria-hidden={open ? undefined : true}>
       <div class="filters-panel__header">
         <h2 class="filters-panel__title">Filters</h2>
-        <button
-          class="filters-panel__close"
-          type="button"
-          onClick={onClose}
-          aria-label="Close filters"
-        >
-          ×
-        </button>
+        <div class="filters-panel__header-actions">
+          <button
+            class="filters-panel__icon-btn"
+            type="button"
+            onClick={onToggleSortDirection}
+            aria-pressed={sortDirection === 'desc'}
+            aria-label={
+              sortDirection === 'asc'
+                ? 'Sort ascending (hardest first)'
+                : 'Sort descending (easiest first)'
+            }
+          >
+            <SortDirectionIcon direction={sortDirection} />
+          </button>
+          <button
+            class="filters-panel__icon-btn"
+            type="button"
+            onClick={onClose}
+            aria-label="Close filters"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div class="filters-panel__body">

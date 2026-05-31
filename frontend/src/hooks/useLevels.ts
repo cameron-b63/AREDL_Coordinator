@@ -3,6 +3,8 @@ import { fetchBoard, ApiError } from '../lib/api';
 import type { ActiveClaim, BoardLevel, BoardSummary } from '../lib/types/board';
 import { applyLevelFilters } from '../lib/types/filters';
 import type { LevelFilters } from '../lib/types/filters';
+import { sortLevelsByPosition } from '../lib/types/sort';
+import type { SortDirection } from '../lib/types/sort';
 import type { User } from '../lib/types/user';
 
 export type LevelsState =
@@ -10,7 +12,11 @@ export type LevelsState =
   | { status: 'error'; message: string; retry: () => void }
   | { status: 'ready'; levels: BoardLevel[]; summary: BoardSummary };
 
-export function useLevels(filters: LevelFilters, user: User | null) {
+export function useLevels(
+  filters: LevelFilters,
+  sortDirection: SortDirection,
+  user: User | null,
+) {
   const [state, setState] = useState<LevelsState>({ status: 'loading' });
   const [query, setQuery] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -60,8 +66,9 @@ export function useLevels(filters: LevelFilters, user: User | null) {
 
   const filteredLevels = useMemo(() => {
     if (state.status !== 'ready') return [];
-    return applyLevelFilters(state.levels, filters, user, query);
-  }, [state, query, filters, user]);
+    const filtered = applyLevelFilters(state.levels, filters, user, query);
+    return sortLevelsByPosition(filtered, sortDirection);
+  }, [state, query, filters, sortDirection, user]);
 
   const summary = state.status === 'ready' ? state.summary : null;
 
