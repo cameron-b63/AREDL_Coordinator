@@ -11,6 +11,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
 import { useLevels } from '../hooks/useLevels';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
+import { filtersAreActive } from '../lib/types/filters';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
 import { normalizeUserClaims, toActiveClaim } from '../lib/types/claimMutation';
 
@@ -70,6 +71,7 @@ export function BoardPage() {
           onSearchChange={setQuery}
           user={user}
           filtersOpen={filtersOpen}
+          filtersActive={filtersAreActive(filters)}
           onToggleFilters={handleToggleFilters}
           statsOpen={statsOpen}
           onToggleStats={toggleStats}
@@ -118,6 +120,7 @@ export function BoardPage() {
             id="filters-panel"
             open={filtersOpen}
             signedIn={signedIn}
+            user={user ?? null}
             filters={filters}
             onFilterChange={setFilter}
             onClose={closeFilters}

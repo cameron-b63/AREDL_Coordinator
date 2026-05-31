@@ -5,6 +5,11 @@ export interface ViewerStats {
   pointsEarned: number;
 }
 
+export interface UserHardest {
+  position: number;
+  levelName: string;
+}
+
 export interface UserClaim {
   levelId: string;
   kind: ClaimKind;
@@ -18,6 +23,7 @@ export interface User {
   isAdmin: boolean;
   stats: ViewerStats;
   claims: UserClaim[];
+  hardest: UserHardest | null;
 }
 
 export interface MeResponse {

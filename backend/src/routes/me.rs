@@ -1,4 +1,4 @@
-use crate::aredl::fetch_clan_profile_cached;
+use crate::aredl::{fetch_clan_profile_cached, fetch_user_profile_cached, hardest_from_profile};
 use crate::auth::{resolve_session_identity, resolve_session_user, AuthError};
 use crate::claims::list_claims_for_user;
 use crate::env;
@@ -22,6 +22,14 @@ struct ApiUser {
     is_admin: bool,
     stats: ViewerStatsJson,
     claims: Vec<UserClaimJson>,
+    hardest: Option<HardestJson>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct HardestJson {
+    position: i32,
+    level_name: String,
 }
 
 #[derive(Serialize)]
@@ -57,6 +65,14 @@ pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
         .map_err(|e| e.to_string())?;
     let stats = viewer_stats_from_clan(&clan, &user.discord_id);
     let claims = list_claims_for_user(&ctx.env, &user.id).await?;
+    let hardest = fetch_user_profile_cached(&ctx.env, &user.discord_id)
+        .await
+        .ok()
+        .and_then(|profile| hardest_from_profile(&profile))
+        .map(|hardest| HardestJson {
+            position: hardest.position,
+            level_name: hardest.level_name,
+        });
 
     Response::from_json(&MeResponse {
         user: Some(ApiUser {
@@ -76,6 +92,7 @@ pub async fn me(req: Request, ctx: RouteContext<()>) -> Result<Response> {
                     kind: claim.kind,
                 })
                 .collect(),
+            hardest,
         }),
     })
 }

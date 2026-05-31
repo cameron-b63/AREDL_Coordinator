@@ -11,6 +11,7 @@ interface HeaderProps {
   onSearchChange: (value: string) => void;
   user: User | null | undefined;
   filtersOpen: boolean;
+  filtersActive: boolean;
   onToggleFilters: () => void;
   statsOpen: boolean;
   onToggleStats: () => void;
@@ -27,6 +28,7 @@ export function Header({
   onSearchChange,
   user,
   filtersOpen,
+  filtersActive,
   onToggleFilters,
   statsOpen,
   onToggleStats,
@@ -58,7 +60,10 @@ export function Header({
         {!adminPage ? (
           <>
             <SearchBar value={searchQuery} onInput={onSearchChange} />
-            <FiltersButton active={filtersOpen} onClick={onToggleFilters} />
+            <FiltersButton
+              active={filtersOpen || filtersActive}
+              onClick={onToggleFilters}
+            />
           </>
         ) : null}
       </div>

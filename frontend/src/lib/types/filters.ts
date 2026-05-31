@@ -1,28 +1,43 @@
-import type { ClaimKind } from './claim';
+import { isClaimKind, type ClaimKind } from './claim';
 import type { BoardLevel } from './board';
 import type { User } from './user';
 import { levelIsCompleted } from './board';
-import { userClaimForLevel, userHasClaimOnLevel } from './user';
-
-export type ClaimFilter = ClaimKind | 'any' | 'mine';
+import { userHasClaimOnLevel } from './user';
 
 export interface LevelFilters {
   excludeCompleted: boolean;
+  excludeNewHardests: boolean;
   onlyMyCompletions: boolean;
   onlyUnclaimed: boolean;
-  claimFilter: ClaimFilter;
+  boardClaimKinds: ClaimKind[];
+  onlyMine: boolean;
   positionMin: number | null;
   positionMax: number | null;
 }
 
 export const DEFAULT_LEVEL_FILTERS: LevelFilters = {
   excludeCompleted: false,
+  excludeNewHardests: false,
   onlyMyCompletions: false,
   onlyUnclaimed: false,
-  claimFilter: 'any',
+  boardClaimKinds: [],
+  onlyMine: false,
   positionMin: null,
   positionMax: null,
 };
+
+export function filtersAreActive(filters: LevelFilters): boolean {
+  return (
+    filters.excludeCompleted ||
+    filters.excludeNewHardests ||
+    filters.onlyMyCompletions ||
+    filters.onlyUnclaimed ||
+    filters.onlyMine ||
+    filters.boardClaimKinds.length > 0 ||
+    filters.positionMin !== null ||
+    filters.positionMax !== null
+  );
+}
 
 export function applyLevelFilters(
   levels: BoardLevel[],
@@ -31,9 +46,18 @@ export function applyLevelFilters(
   searchQuery: string,
 ): BoardLevel[] {
   const trimmed = searchQuery.trim().toLowerCase();
+  const hardestPosition = user?.hardest?.position ?? null;
 
   return levels.filter((level) => {
     if (filters.excludeCompleted && levelIsCompleted(level)) {
+      return false;
+    }
+
+    if (
+      filters.excludeNewHardests &&
+      hardestPosition !== null &&
+      level.position < hardestPosition
+    ) {
       return false;
     }
 
@@ -49,17 +73,16 @@ export function applyLevelFilters(
       }
     }
 
-    if (filters.claimFilter !== 'any') {
-      if (!user) return false;
-      if (filters.claimFilter === 'mine') {
-        if (!userHasClaimOnLevel(user, level.id)) {
-          return false;
-        }
-      } else {
-        const ownKind = userClaimForLevel(user, level.id);
-        if (!ownKind || ownKind !== filters.claimFilter) {
-          return false;
-        }
+    if (filters.boardClaimKinds.length > 0) {
+      const kind = level.claim.active?.kind;
+      if (!kind || !isClaimKind(kind) || !filters.boardClaimKinds.includes(kind)) {
+        return false;
+      }
+    }
+
+    if (filters.onlyMine) {
+      if (!user || !userHasClaimOnLevel(user, level.id)) {
+        return false;
       }
     }
 
@@ -79,4 +102,13 @@ export function applyLevelFilters(
 
     return true;
   });
+}
+
+export function toggleBoardClaimKind(
+  current: ClaimKind[],
+  kind: ClaimKind,
+): ClaimKind[] {
+  return current.includes(kind)
+    ? current.filter((value) => value !== kind)
+    : [...current, kind];
 }

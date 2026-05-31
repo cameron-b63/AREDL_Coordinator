@@ -310,6 +310,17 @@
   color: var(--color-text-on-dark);
 }
 
+.filters-panel__fieldset {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  border: none;
+}
+
+.filters-panel__fieldset .filters-panel__field-label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .content-split__list,
   .filters-panel,

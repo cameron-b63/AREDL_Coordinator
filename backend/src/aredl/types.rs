@@ -56,3 +56,23 @@ pub struct ClanRecordUser {
     pub discord_id: String,
     pub discord_avatar: Option<String>,
 }
+
+/// `GET /aredl/profile/{id}` — user AREDL profile with completion records.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UserProfile {
+    pub records: Vec<ProfileRecord>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ProfileRecord {
+    pub level: ProfileRecordLevel,
+    #[serde(default)]
+    pub is_verification: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ProfileRecordLevel {
+    pub id: String,
+    pub name: String,
+    pub position: i32,
+}

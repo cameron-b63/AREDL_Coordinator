@@ -26,7 +26,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     }
 
     let response = Router::new()
-        .get("/api/health", health)
+        .get_async("/api/health", health)
         .get_async("/api/aredl/ping", aredl_ping)
         .get_async("/api/aredl/levels", aredl_levels)
         .get_async("/api/board", board)

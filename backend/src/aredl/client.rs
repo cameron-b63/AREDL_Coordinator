@@ -30,6 +30,15 @@ pub async fn fetch_clan_profile(
     fetch_json(&url).await
 }
 
+pub async fn fetch_user_profile(
+    env: &Env,
+    user_id: &str,
+) -> std::result::Result<super::types::UserProfile, UpstreamError> {
+    let base = env::aredl_api_base(env).map_err(|_| UpstreamError { status: 0 })?;
+    let url = format!("{base}/aredl/profile/{user_id}");
+    fetch_json(&url).await
+}
+
 /// Official AREDL showcase (list verification) YouTube URL for one level.
 pub async fn fetch_level_showcase(
     env: &Env,

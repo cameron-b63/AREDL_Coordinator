@@ -46,3 +46,20 @@ pub fn select_dominant_claim<'a>(claims: &'a [super::db::ClaimRow]) -> Option<&'
             .then_with(|| left.updated_at.cmp(&right.updated_at))
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_deescalation_when_new_rank_is_lower() {
+        assert!(is_deescalation("locked_down", "claimed"));
+        assert!(is_deescalation("supposedly_completed", "begrudgingly_earmarked"));
+    }
+
+    #[test]
+    fn is_not_deescalation_when_escalating_or_same() {
+        assert!(!is_deescalation("claimed", "locked_down"));
+        assert!(!is_deescalation("claimed", "claimed"));
+    }
+}

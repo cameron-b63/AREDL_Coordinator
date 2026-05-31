@@ -1,10 +1,16 @@
 import { CLAIM_OPTIONS } from '../../lib/types/claim';
-import type { ClaimFilter, LevelFilters } from '../../lib/types/filters';
+import {
+  toggleBoardClaimKind,
+  type LevelFilters,
+} from '../../lib/types/filters';
+import type { ClaimKind } from '../../lib/types/claim';
+import type { User } from '../../lib/types/user';
 
 interface FiltersPanelProps {
   id: string;
   open: boolean;
   signedIn: boolean;
+  user: User | null;
   filters: LevelFilters;
   onFilterChange: <K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => void;
   onClose: () => void;
@@ -21,11 +27,21 @@ export function FiltersPanel({
   id,
   open,
   signedIn,
+  user,
   filters,
   onFilterChange,
   onClose,
 }: FiltersPanelProps) {
   const myFiltersDisabled = !signedIn;
+  const hardest = user?.hardest ?? null;
+  const excludeHardestsDisabled = myFiltersDisabled || hardest?.position == null;
+
+  function handleBoardClaimToggle(kind: ClaimKind, checked: boolean) {
+    const next = checked
+      ? toggleBoardClaimKind(filters.boardClaimKinds, kind)
+      : filters.boardClaimKinds.filter((value) => value !== kind);
+    onFilterChange('boardClaimKinds', next);
+  }
 
   return (
     <aside id={id} class="filters-panel" aria-hidden={open ? undefined : true}>
@@ -57,6 +73,29 @@ export function FiltersPanel({
             />
             <span class="filters-panel__option-label">Exclude completed levels</span>
           </label>
+          <label class="filters-panel__option">
+            <input
+              type="checkbox"
+              checked={filters.excludeNewHardests}
+              disabled={excludeHardestsDisabled}
+              onChange={(event) =>
+                onFilterChange(
+                  'excludeNewHardests',
+                  (event.currentTarget as HTMLInputElement).checked,
+                )
+              }
+            />
+            <span class="filters-panel__option-label">Exclude New Hardests</span>
+          </label>
+          {myFiltersDisabled ? (
+            <p class="filters-panel__hint">Sign in to filter by your AREDL profile.</p>
+          ) : hardest?.position != null ? (
+            <p class="filters-panel__hint">
+              Hides levels harder than #{hardest.position} {hardest.levelName ?? ''}
+            </p>
+          ) : (
+            <p class="filters-panel__hint">No AREDL completions found on your profile.</p>
+          )}
         </section>
 
         <section class="filters-panel__section">
@@ -82,9 +121,6 @@ export function FiltersPanel({
 
         <section class="filters-panel__section">
           <h3 class="filters-panel__section-title">Claims</h3>
-          {myFiltersDisabled ? (
-            <p class="filters-panel__hint">Sign in to filter by claims.</p>
-          ) : null}
           <label class="filters-panel__option">
             <input
               type="checkbox"
@@ -99,28 +135,42 @@ export function FiltersPanel({
             />
             <span class="filters-panel__option-label">Only unclaimed (not completed)</span>
           </label>
-          <label class="filters-panel__field">
-            <span class="filters-panel__field-label">Claim status</span>
-            <select
-              class="filters-panel__select"
-              value={filters.claimFilter}
-              disabled={myFiltersDisabled}
-              onChange={(event) =>
-                onFilterChange(
-                  'claimFilter',
-                  (event.currentTarget as HTMLSelectElement).value as ClaimFilter,
-                )
-              }
-            >
-              <option value="any">Any</option>
-              <option value="mine">Claimed by me</option>
-              {CLAIM_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {myFiltersDisabled ? (
+            <p class="filters-panel__hint">Sign in for personal claim filters.</p>
+          ) : (
+            <label class="filters-panel__option">
+              <input
+                type="checkbox"
+                checked={filters.onlyMine}
+                disabled={myFiltersDisabled}
+                onChange={(event) =>
+                  onFilterChange(
+                    'onlyMine',
+                    (event.currentTarget as HTMLInputElement).checked,
+                  )
+                }
+              />
+              <span class="filters-panel__option-label">Claimed by me</span>
+            </label>
+          )}
+          <fieldset class="filters-panel__fieldset">
+            <legend class="filters-panel__field-label">Active claim on board (any user)</legend>
+            {CLAIM_OPTIONS.map((option) => (
+              <label key={option.value} class="filters-panel__option">
+                <input
+                  type="checkbox"
+                  checked={filters.boardClaimKinds.includes(option.value)}
+                  onChange={(event) =>
+                    handleBoardClaimToggle(
+                      option.value,
+                      (event.currentTarget as HTMLInputElement).checked,
+                    )
+                  }
+                />
+                <span class="filters-panel__option-label">{option.label}</span>
+              </label>
+            ))}
+          </fieldset>
         </section>
 
         <section class="filters-panel__section">

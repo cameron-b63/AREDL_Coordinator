@@ -30,6 +30,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Check migration safety
+        run: bash scripts/check-migrations.sh
+
       - uses: actions/cache@v4
         id: worker-build-cache
         with:

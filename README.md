@@ -128,14 +128,14 @@ make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 
 | Route | Description |
 |---|---|
-| `GET /api/health` | Backend health check |
+| `GET /api/health` | Backend health check (includes D1 claim/user counts) |
 | `GET /api/aredl/ping` | Proxies AREDL API `/health` |
 | `GET /api/aredl/levels` | Proxies AREDL demon list (cached) |
 | `GET /api/board` | Demon list merged with NSH clan completions and claim flags (cached) |
 | `GET /auth/discord` | Starts Discord OAuth (redirects to Discord) |
 | `GET /auth/discord/callback` | OAuth callback; sets session cookie; redirects to frontend |
 | `GET /auth/logout` | Clears session cookie; redirects to frontend |
-| `GET /api/me` | Authenticated user profile with `isAdmin` flag (401 when signed out) |
+| `GET /api/me` | Authenticated user profile with AREDL hardest, stats, and claims (401 when signed out) |
 | `POST /api/claims` | Submit or update a claim (session + coordinator role) |
 | `DELETE /api/claims/:level_id` | Remove your own claim on a level |
 | `DELETE /api/admin/claims/:level_id` | Admin hard-reset of any claim |
@@ -145,7 +145,19 @@ Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in th
 
 ## External API
 
-Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Each user may hold one claim per level; clobbering inserts a new row and preserves the previous claim. The board shows the highest-severity claim per level. De-escalating (submitting a lower priority on your own claim) or removing deletes your row; admin reset clears all claims on a level.
+Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Each user may hold one claim per level; clobbering inserts a new row and preserves the previous claim. The board shows the highest-severity claim per level. De-escalating (submitting a lower priority on your own claim) updates your row; **Remove Claim** deletes it; admin reset clears all claims on a level. User hardest for filters comes from `GET /aredl/profile/{discord_id}`.
+
+## Data persistence
+
+Claims and users are stored in **Cloudflare D1**, separate from the Worker code. Deploying the Worker (`wrangler deploy` or GitHub Actions) only updates runtime code; it does **not** wipe D1 data.
+
+Before each deploy, CI runs `d1 migrations apply DB --remote`, which applies **only pending** migrations. New migrations must preserve existing rows (copy-rename pattern like [`0004_multi_claim_per_level.sql`](backend/migrations/0004_multi_claim_per_level.sql)); `backend/scripts/check-migrations.sh` rejects migrations that drop `claims` without an `INSERT … SELECT`.
+
+To verify claims survived a deploy, compare `db.claimsCount` from `GET /api/health` before and after:
+
+```bash
+curl -s https://aredl-coordinator.<your-subdomain>.workers.dev/api/health
+```
 
 ## License
 

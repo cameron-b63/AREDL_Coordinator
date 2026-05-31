@@ -45,6 +45,7 @@ export function AdminPortal() {
           onSearchChange={() => {}}
           user={user}
           filtersOpen={false}
+          filtersActive={false}
           onToggleFilters={() => {}}
           statsOpen={false}
           onToggleStats={() => {}}

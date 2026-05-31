@@ -3,7 +3,7 @@ use crate::aredl::level_has_clan_completion;
 use crate::board::invalidate_board_cache;
 use crate::claims::{
     build_claim_mutation_response, can_clobber_dominant, delete_user_claim_for_level, insert_claim,
-    is_deescalation, is_valid_priority, list_claims_for_level, select_dominant_claim, update_user_claim,
+    is_valid_priority, list_claims_for_level, select_dominant_claim, update_user_claim,
 };
 use serde::Deserialize;
 use serde::Serialize;
@@ -67,11 +67,7 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
             return mutation_response(&ctx.env, &user.id, &body.level_id).await;
         }
 
-        if is_deescalation(&own_claim.kind, &body.kind) {
-            delete_user_claim_for_level(&ctx.env, &user.id, &body.level_id).await?;
-        } else {
-            update_user_claim(&ctx.env, &user.id, &body.level_id, &body.kind).await?;
-        }
+        update_user_claim(&ctx.env, &user.id, &body.level_id, &body.kind).await?;
     } else if let Some(dominant_claim) = dominant {
         if !can_clobber_dominant(&dominant_claim.kind, &body.kind) {
             return json_error(

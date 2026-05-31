@@ -4,6 +4,7 @@ import type { ActiveClaim, BoardLevel } from '../../lib/types/board';
 import {
   CLAIM_OPTIONS,
   canSetClaimKind,
+  claimKindLabel,
   isClaimKind,
   type ClaimKind,
 } from '../../lib/types/claim';
@@ -35,9 +36,11 @@ export function ClaimMenu({
   const [selection, setSelection] = useState<ClaimKind>(ownKind ?? 'claimed');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setSelection(ownKind ?? 'claimed');
+    setSuccess(null);
   }, [ownKind, level.id]);
 
   const disabled = !signedIn || !menuEnabled || submitting;
@@ -49,14 +52,19 @@ export function ClaimMenu({
 
   const hasOwnClaim = signedIn && user !== null && userHasClaimOnLevel(user, level.id);
   const showRemoveClaim = hasOwnClaim && menuEnabled;
+  const selectionUnchanged = ownKind !== null && selection === ownKind;
+  const canSubmit =
+    canSetClaimKind(ownKind, selection, dominantKind) && !selectionUnchanged;
 
   async function handleSubmit() {
-    if (disabled) return;
+    if (disabled || !canSubmit) return;
     setSubmitting(true);
     setError(null);
+    setSuccess(null);
     try {
       const result = await submitClaim(level.id, selection);
       onClaimChange(result);
+      setSuccess(`Claim updated to ${claimKindLabel(selection)}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to submit claim');
     } finally {
@@ -68,6 +76,7 @@ export function ClaimMenu({
     if (!showRemoveClaim || submitting) return;
     setSubmitting(true);
     setError(null);
+    setSuccess(null);
     try {
       const result = await removeClaim(level.id);
       onClaimChange(result);
@@ -104,7 +113,7 @@ export function ClaimMenu({
         <button
           class="claim-menu__submit"
           type="button"
-          disabled={disabled || !canSetClaimKind(ownKind, selection, dominantKind)}
+          disabled={disabled || !canSubmit}
           title={hint}
           onClick={handleSubmit}
         >
@@ -121,6 +130,7 @@ export function ClaimMenu({
           Remove Claim
         </button>
       ) : null}
+      {success ? <p class="claim-menu__success">{success}</p> : null}
       {error ? <p class="claim-menu__error">{error}</p> : null}
     </div>
   );

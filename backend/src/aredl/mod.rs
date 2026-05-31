@@ -1,10 +1,12 @@
 mod cache;
 mod client;
+mod profile;
 mod types;
 
-pub use cache::{fetch_clan_profile_cached, level_has_clan_completion};
-pub use client::{fetch_clan_profile, fetch_level_showcase, fetch_levels, UpstreamError};
-pub use types::{ClanProfile, ClanRecord, ClanRecordLevel, ClanRecordUser, UpstreamLevel};
+pub use cache::{fetch_clan_profile_cached, fetch_user_profile_cached, level_has_clan_completion};
+pub use client::{fetch_clan_profile, fetch_level_showcase, fetch_levels, fetch_user_profile, UpstreamError};
+pub use profile::{hardest_from_profile, HardestCompletion};
+pub use types::{ClanProfile, ClanRecord, ClanRecordLevel, ClanRecordUser, UpstreamLevel, UserProfile};
 
 pub fn user_avatar_url(discord_id: &str, discord_avatar: Option<&str>) -> Option<String> {
     match discord_avatar {
