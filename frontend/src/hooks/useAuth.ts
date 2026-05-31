@@ -24,6 +24,10 @@ export function useAuth() {
     });
   }, []);
 
+  const setUserProfile = useCallback((next: User) => {
+    setUser(next);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -44,5 +48,5 @@ export function useAuth() {
     };
   }, []);
 
-  return { user, loading: user === undefined, refresh, setClaims };
+  return { user, loading: user === undefined, refresh, setClaims, setUser: setUserProfile };
 }

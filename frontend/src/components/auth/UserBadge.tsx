@@ -7,6 +7,11 @@ interface UserBadgeProps {
   user: User;
 }
 
+function settingsPath(): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${base}/settings`;
+}
+
 export function UserBadge({ user }: UserBadgeProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -55,6 +60,9 @@ export function UserBadge({ user }: UserBadgeProps) {
       </button>
       {open ? (
         <div class="user-badge__menu" role="menu">
+          <a class="user-badge__menu-item" href={settingsPath()} role="menuitem">
+            Settings
+          </a>
           <a
             class="user-badge__menu-item"
             href={signOutUrl()}

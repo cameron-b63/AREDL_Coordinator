@@ -1,6 +1,8 @@
 import { authHeaders, clearSessionToken } from './session';
 import type { ClaimKind } from './types/claim';
 import type { ClaimMutationResponse } from './types/claimMutation';
+import { normalizeUserPreferences, type UserPreferences } from './types/preferences';
+import type { MeResponse, User } from './types/user';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787';
 
@@ -93,7 +95,23 @@ export function fetchShowcaseVideo(levelId: string) {
   return apiFetch<ShowcaseVideoResponse>(`/api/levels/${encodeURIComponent(levelId)}/showcase`);
 }
 
-export async function fetchMe(): Promise<import('./types/user').User | null> {
+function normalizeMeUser(user: NonNullable<MeResponse['user']>): User {
+  return {
+    ...user,
+    isAdmin: user.isAdmin ?? false,
+    claims: user.claims ?? [],
+    aredlHardest: user.aredlHardest ?? null,
+    manualHardest: user.manualHardest ?? null,
+    preferences: normalizeUserPreferences(user.preferences),
+  };
+}
+
+function parseMeUser(data: MeResponse): User | null {
+  if (!data.user) return null;
+  return normalizeMeUser(data.user);
+}
+
+export async function fetchMe(): Promise<User | null> {
   let response: Response;
   try {
     response = await fetch(`${API_URL}/api/me`, {
@@ -113,10 +131,40 @@ export async function fetchMe(): Promise<import('./types/user').User | null> {
     return null;
   }
 
-  const data = (await response.json()) as import('./types/user').MeResponse;
-  const user = data.user;
-  if (!user) return null;
-  return { ...user, isAdmin: user.isAdmin ?? false, claims: user.claims ?? [] };
+  const data = (await response.json()) as MeResponse;
+  return parseMeUser(data);
+}
+
+export async function putManualHardest(position: number): Promise<User> {
+  const data = await apiFetch<MeResponse>('/api/me/manual-hardest', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ position }),
+  });
+  const user = parseMeUser(data);
+  if (!user) {
+    throw new ApiError('No user in response', 500);
+  }
+  return user;
+}
+
+export async function deleteManualHardest(): Promise<User> {
+  const data = await apiFetch<MeResponse>('/api/me/manual-hardest', {
+    method: 'DELETE',
+  });
+  const user = parseMeUser(data);
+  if (!user) {
+    throw new ApiError('No user in response', 500);
+  }
+  return user;
+}
+
+export function putPreferences(preferences: UserPreferences) {
+  return apiFetch<MeResponse>('/api/me/preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preferences),
+  });
 }
 
 export function signInUrl(): string {

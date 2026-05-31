@@ -135,7 +135,10 @@ make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 | `GET /auth/discord` | Starts Discord OAuth (redirects to Discord) |
 | `GET /auth/discord/callback` | OAuth callback; sets session cookie; redirects to frontend |
 | `GET /auth/logout` | Clears session cookie; redirects to frontend |
-| `GET /api/me` | Authenticated user profile with AREDL hardest, stats, and claims (401 when signed out) |
+| `GET /api/me` | Authenticated user profile with effective hardest, AREDL/manual split, saved filter preferences, stats, and claims (401 when signed out) |
+| `PUT /api/me/manual-hardest` | Set manual hardest by list placement (`{ position }`); resolves level name from AREDL list |
+| `DELETE /api/me/manual-hardest` | Clear manual hardest override (revert to AREDL profile) |
+| `PUT /api/me/preferences` | Save filter and sort preferences (`{ filters, sortDirection }`) |
 | `POST /api/claims` | Submit or update a claim (session + coordinator role) |
 | `DELETE /api/claims/:level_id` | Remove your own claim on a level |
 | `DELETE /api/admin/claims/:level_id` | Admin hard-reset of any claim |
@@ -145,7 +148,7 @@ Sign-in requires the Discord role configured as `DISCORD_REQUIRED_ROLE_ID` in th
 
 ## External API
 
-Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Each user may hold one claim per level; clobbering inserts a new row and preserves the previous claim. The board shows the highest-severity claim per level. De-escalating (submitting a lower priority on your own claim) updates your row; **Remove Claim** deletes it; admin reset clears all claims on a level. User hardest for filters comes from `GET /aredl/profile/{discord_id}`.
+Level data and clan completions come from the [AREDL API v2](https://api.aredl.net/v2/docs) (`https://api.aredl.net/v2/api`). The board endpoint merges `GET /aredl/levels` with `GET /aredl/clan/{AREDL_CLAN_ID}` (NSH clan records) and reads claims from D1. Each user may hold one claim per level; clobbering inserts a new row and preserves the previous claim. The board shows the highest-severity claim per level. De-escalating (submitting a lower priority on your own claim) updates your row; **Remove Claim** deletes it; admin reset clears all claims on a level. User hardest for filters is the manual override in D1 when set, otherwise from `GET /aredl/profile/{discord_id}`. Filter and sort preferences are stored per user in D1 (`preferences_json`).
 
 ## Data persistence
 

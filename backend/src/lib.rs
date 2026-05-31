@@ -4,14 +4,15 @@ mod board;
 mod claims;
 mod cors;
 mod env;
+mod preferences;
 mod routes;
 mod stats;
 
 use cors::{cors_allow_origin, with_cors};
 use routes::{
     admin_execute_claims_sql, admin_prune_claims, admin_reset_claim, aredl_levels, aredl_ping,
-    board, discord_callback,
-    discord_login, discord_logout, health, me, level_showcase, remove_claim, submit_claim,
+    board, delete_manual_hardest, discord_callback, discord_login, discord_logout, health, me,
+    level_showcase, put_manual_hardest, put_preferences, remove_claim, submit_claim,
 };
 use worker::*;
 
@@ -40,6 +41,9 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .get_async("/auth/discord/callback", discord_callback)
         .get_async("/auth/logout", discord_logout)
         .get_async("/api/me", me)
+        .put_async("/api/me/manual-hardest", put_manual_hardest)
+        .delete_async("/api/me/manual-hardest", delete_manual_hardest)
+        .put_async("/api/me/preferences", put_preferences)
         .run(req, env)
         .await?;
 

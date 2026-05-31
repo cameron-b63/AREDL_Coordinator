@@ -1,4 +1,5 @@
 import type { ClaimKind } from './claim';
+import type { UserPreferences } from './preferences';
 
 export interface ViewerStats {
   levelsContributed: number;
@@ -24,6 +25,9 @@ export interface User {
   stats: ViewerStats;
   claims: UserClaim[];
   hardest: UserHardest | null;
+  aredlHardest: UserHardest | null;
+  manualHardest: UserHardest | null;
+  preferences: UserPreferences;
 }
 
 export interface MeResponse {

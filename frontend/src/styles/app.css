@@ -2,6 +2,7 @@
 @import './layout.css';
 @import './level-card.css';
 @import './filters.css';
+@import './settings.css';
 
 *,
 *::before,

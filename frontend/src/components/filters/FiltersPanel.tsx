@@ -17,7 +17,13 @@ interface FiltersPanelProps {
   onFilterChange: <K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => void;
   sortDirection: SortDirection;
   onToggleSortDirection: () => void;
+  onResetFilters: () => void;
   onClose: () => void;
+}
+
+function settingsPath(): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return `${base}/settings`;
 }
 
 function parseOptionalInt(value: string): number | null {
@@ -36,10 +42,12 @@ export function FiltersPanel({
   onFilterChange,
   sortDirection,
   onToggleSortDirection,
+  onResetFilters,
   onClose,
 }: FiltersPanelProps) {
   const myFiltersDisabled = !signedIn;
   const hardest = user?.hardest ?? null;
+  const manualHardest = user?.manualHardest ?? null;
   const excludeHardestsDisabled = myFiltersDisabled || hardest?.position == null;
 
   function handleBoardClaimToggle(kind: ClaimKind, checked: boolean) {
@@ -109,13 +117,17 @@ export function FiltersPanel({
             <span class="filters-panel__option-label">Exclude New Hardests</span>
           </label>
           {myFiltersDisabled ? (
-            <p class="filters-panel__hint">Sign in to filter by your AREDL profile.</p>
+            <p class="filters-panel__hint">Sign in to filter by your progress.</p>
           ) : hardest?.position != null ? (
             <p class="filters-panel__hint">
               Hides levels harder than #{hardest.position} {hardest.levelName ?? ''}
+              {manualHardest ? ' (manual)' : ''}
             </p>
           ) : (
-            <p class="filters-panel__hint">No AREDL completions found on your profile.</p>
+            <p class="filters-panel__hint">
+              Set your hardest in <a href={settingsPath()}>Settings</a> or complete a level on
+              AREDL.
+            </p>
           )}
         </section>
 
@@ -231,6 +243,18 @@ export function FiltersPanel({
             </label>
           </div>
         </section>
+
+        {signedIn ? (
+          <footer class="filters-panel__footer">
+            <button
+              type="button"
+              class="filters-panel__reset"
+              onClick={onResetFilters}
+            >
+              Reset filters to defaults
+            </button>
+          </footer>
+        ) : null}
       </div>
     </aside>
   );
