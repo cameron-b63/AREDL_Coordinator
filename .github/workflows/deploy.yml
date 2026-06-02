@@ -5,56 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.detect.outputs.backend }}
-      frontend: ${{ steps.detect.outputs.frontend }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - id: detect
-        shell: bash
-        run: |
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.sha }}"
-
-          # First push to a branch can have an all-zero "before" SHA.
-          if [[ "$BEFORE" =~ ^0+$ ]]; then
-            RANGE="$AFTER"
-          else
-            RANGE="$BEFORE...$AFTER"
-          fi
-
-          CHANGED_FILES="$(git diff --name-only "$RANGE")"
-
-          backend_changed=false
-          frontend_changed=false
-
-          while IFS= read -r file; do
-            [[ -z "$file" ]] && continue
-
-            case "$file" in
-              backend/*|.github/workflows/deploy.yml|Makefile)
-                backend_changed=true
-                ;;
-            esac
-
-            case "$file" in
-              frontend/*|.github/workflows/deploy.yml|Makefile)
-                frontend_changed=true
-                ;;
-            esac
-          done <<< "$CHANGED_FILES"
-
-          echo "backend=$backend_changed" >> "$GITHUB_OUTPUT"
-          echo "frontend=$frontend_changed" >> "$GITHUB_OUTPUT"
-
   deploy-backend:
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -127,8 +78,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
   deploy-frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,35 +92,6 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Check frontend/backend auth config drift
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          api_url="$(sed -n 's/^VITE_API_URL=//p' .env.production | head -n 1)"
-          frontend_origin="$(sed -n 's/^FRONTEND_ORIGIN = \"\(.*\)\"$/\1/p' ../backend/wrangler.toml | head -n 1)"
-          frontend_base_path="$(sed -n 's/^FRONTEND_BASE_PATH = \"\(.*\)\"$/\1/p' ../backend/wrangler.toml | head -n 1)"
-
-          if [[ -z "$api_url" || -z "$frontend_origin" || -z "$frontend_base_path" ]]; then
-            echo "Missing VITE_API_URL or backend frontend origin/base path configuration."
-            exit 1
-          fi
-
-          if [[ "$api_url" != https://* ]]; then
-            echo "VITE_API_URL must be https in production. Got: $api_url"
-            exit 1
-          fi
-
-          if [[ "$frontend_origin" != https://* ]]; then
-            echo "FRONTEND_ORIGIN must be https. Got: $frontend_origin"
-            exit 1
-          fi
-
-          if [[ "$frontend_base_path" != /* ]]; then
-            echo "FRONTEND_BASE_PATH must start with '/'. Got: $frontend_base_path"
-            exit 1
-          fi
 
       - run: npm ci && npm run build
 

@@ -1,18 +1,12 @@
 use crate::auth::{
-    auth_error_redirect, authorize_url, avatar_url, clear_oauth_return_to_cookie,
-    clear_oauth_state_cookie, clear_session_cookie, exchange_code, fetch_member_roles, fetch_user,
-    frontend_session_redirect_url, new_oauth_state, oauth_return_to_from_request,
-    oauth_state_from_request, redirect_response, set_oauth_return_to_cookie, set_oauth_state_cookie,
-    set_session_cookie, sign_session, upsert_user,
+    auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
+    exchange_code, fetch_member_roles, fetch_user, frontend_session_redirect_url, new_oauth_state,
+    oauth_state_from_request, redirect_response, set_oauth_state_cookie, set_session_cookie,
+    sign_session, upsert_user,
 };
-use crate::env::{self, frontend_redirect_url, oauth_callback_url, validate_frontend_return_to};
+use crate::env::{self, frontend_redirect_url, oauth_callback_url};
 use serde::Deserialize;
-use worker::{console_log, Request, Response, Result, RouteContext};
-
-#[derive(Deserialize)]
-struct LoginQuery {
-    return_to: Option<String>,
-}
+use worker::{Request, Response, Result, RouteContext};
 
 #[derive(Deserialize)]
 struct CallbackQuery {
@@ -22,7 +16,6 @@ struct CallbackQuery {
 }
 
 pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Response> {
-    let query: LoginQuery = req.query()?;
     let client_id = env::discord_client_id(&ctx.env)?;
     let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
@@ -31,21 +24,11 @@ pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Respon
 
     let response = redirect_response(&authorize)?;
     set_oauth_state_cookie(&response, &state)?;
-    if let Some(return_to) = query.return_to {
-        if let Some(validated) = validate_frontend_return_to(&ctx.env, &return_to) {
-            set_oauth_return_to_cookie(&response, &validated)?;
-        }
-    }
     Ok(response)
 }
 
 pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let query: CallbackQuery = req.query()?;
-    let has_query_state = query.state.is_some();
-    let req_url = req.url()?;
-    let callback_host = req_url.host_str().unwrap_or("unknown");
-    let callback_path = req_url.path().to_string();
-    let has_cookie_header = req.headers().get("Cookie").ok().flatten().is_some();
 
     if query.error.is_some() {
         return auth_error_redirect(&ctx.env, "discord authorization denied");
@@ -58,29 +41,13 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
         .state
         .ok_or_else(|| "missing oauth state".to_string())?;
 
-    let stored_state = match oauth_state_from_request(&req) {
-        Some(value) => value,
-        None => {
-            console_log!(
-                "oauth_callback_missing_state_cookie host={} path={} has_cookie_header={} has_query_state={}",
-                callback_host,
-                callback_path,
-                has_cookie_header,
-                has_query_state
-            );
-            return Err("missing oauth state cookie".into());
-        }
-    };
+    let stored_state = oauth_state_from_request(&req)
+        .ok_or_else(|| "missing oauth state cookie".to_string())?;
     if stored_state != state {
-        console_log!(
-            "oauth_callback_state_mismatch host={} path={} has_cookie_header={}",
-            callback_host,
-            callback_path,
-            has_cookie_header
-        );
         return auth_error_redirect(&ctx.env, "invalid oauth state");
     }
 
+    let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
     let client_id = env::discord_client_id(&ctx.env)?;
     let client_secret = env::discord_client_secret(&ctx.env)?;
@@ -115,12 +82,11 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
     .await?;
 
     let token = sign_session(&user.id, is_admin, &jwt_secret)?;
-    let frontend = oauth_return_to_from_request(&req).unwrap_or(frontend_redirect_url(&ctx.env)?);
+    let frontend = frontend_redirect_url(&ctx.env)?;
     let redirect_target = frontend_session_redirect_url(&frontend, &token);
 
     let response = redirect_response(&redirect_target)?;
     clear_oauth_state_cookie(&response)?;
-    clear_oauth_return_to_cookie(&response)?;
     set_session_cookie(&response, &token)?;
     Ok(response)
 }
