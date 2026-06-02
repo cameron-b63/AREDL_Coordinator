@@ -149,9 +149,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          api_url="$(rg '^VITE_API_URL=' .env.production | sed 's/^VITE_API_URL=//')"
-          frontend_origin="$(rg '^FRONTEND_ORIGIN = ' ../backend/wrangler.toml | sed 's/^FRONTEND_ORIGIN = \"//; s/\"$//')"
-          frontend_base_path="$(rg '^FRONTEND_BASE_PATH = ' ../backend/wrangler.toml | sed 's/^FRONTEND_BASE_PATH = \"//; s/\"$//')"
+          api_url="$(sed -n 's/^VITE_API_URL=//p' .env.production | head -n 1)"
+          frontend_origin="$(sed -n 's/^FRONTEND_ORIGIN = \"\(.*\)\"$/\1/p' ../backend/wrangler.toml | head -n 1)"
+          frontend_base_path="$(sed -n 's/^FRONTEND_BASE_PATH = \"\(.*\)\"$/\1/p' ../backend/wrangler.toml | head -n 1)"
 
           if [[ -z "$api_url" || -z "$frontend_origin" || -z "$frontend_base_path" ]]; then
             echo "Missing VITE_API_URL or backend frontend origin/base path configuration."
