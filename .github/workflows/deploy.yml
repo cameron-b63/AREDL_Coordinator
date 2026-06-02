@@ -8,25 +8,49 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.detect.outputs.backend }}
+      frontend: ${{ steps.detect.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            backend:
-              - 'backend/**'
-              - '.github/workflows/deploy.yml'
-              - 'Makefile'
-            frontend:
-              - 'frontend/**'
-              - '.github/workflows/deploy.yml'
-              - 'Makefile'
+      - id: detect
+        shell: bash
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          # First push to a branch can have an all-zero "before" SHA.
+          if [[ "$BEFORE" =~ ^0+$ ]]; then
+            RANGE="$AFTER"
+          else
+            RANGE="$BEFORE...$AFTER"
+          fi
+
+          CHANGED_FILES="$(git diff --name-only "$RANGE")"
+
+          backend_changed=false
+          frontend_changed=false
+
+          while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+
+            case "$file" in
+              backend/*|.github/workflows/deploy.yml|Makefile)
+                backend_changed=true
+                ;;
+            esac
+
+            case "$file" in
+              frontend/*|.github/workflows/deploy.yml|Makefile)
+                frontend_changed=true
+                ;;
+            esac
+          done <<< "$CHANGED_FILES"
+
+          echo "backend=$backend_changed" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend_changed" >> "$GITHUB_OUTPUT"
 
   deploy-backend:
     needs: changes
