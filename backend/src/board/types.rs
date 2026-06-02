@@ -11,6 +11,7 @@ pub struct BoardResponse {
 #[serde(rename_all = "camelCase")]
 pub struct BoardSummary {
     pub completed_count: i32,
+    pub supposedly_completed_count: i32,
     pub total_count: i32,
 }
 
@@ -27,6 +28,8 @@ pub struct BoardLevel {
     pub list_page_url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub clan_verification_video_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub record_achieved_at: Option<String>,
     pub completion: CompletionInfo,
     pub claim: ClaimInfo,
 }

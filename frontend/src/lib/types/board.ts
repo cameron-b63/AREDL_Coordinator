@@ -33,12 +33,14 @@ export interface BoardLevel {
   tags: string[];
   listPageUrl: string;
   clanVerificationVideoUrl?: string;
+  recordAchievedAt?: string;
   completion: CompletionInfo;
   claim: ClaimInfo;
 }
 
 export interface BoardSummary {
   completedCount: number;
+  supposedlyCompletedCount: number;
   totalCount: number;
 }
 

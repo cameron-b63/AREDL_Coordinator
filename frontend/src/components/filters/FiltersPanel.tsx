@@ -1,11 +1,12 @@
 import { SortDirectionIcon } from '../ui/SortDirectionIcon';
+import { SortModeIcon } from '../ui/SortModeIcon';
 import { CLAIM_OPTIONS } from '../../lib/types/claim';
 import {
   toggleBoardClaimKind,
   type LevelFilters,
 } from '../../lib/types/filters';
 import type { ClaimKind } from '../../lib/types/claim';
-import type { SortDirection } from '../../lib/types/sort';
+import type { SortDirection, SortMode } from '../../lib/types/sort';
 import type { User } from '../../lib/types/user';
 
 interface FiltersPanelProps {
@@ -16,6 +17,8 @@ interface FiltersPanelProps {
   filters: LevelFilters;
   onFilterChange: <K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => void;
   sortDirection: SortDirection;
+  sortMode: SortMode;
+  onToggleSortMode: () => void;
   onToggleSortDirection: () => void;
   onResetFilters: () => void;
   onClose: () => void;
@@ -41,6 +44,8 @@ export function FiltersPanel({
   filters,
   onFilterChange,
   sortDirection,
+  sortMode,
+  onToggleSortMode,
   onToggleSortDirection,
   onResetFilters,
   onClose,
@@ -57,6 +62,17 @@ export function FiltersPanel({
     onFilterChange('boardClaimKinds', next);
   }
 
+  const sortModeLabel =
+    sortMode === 'position' ? 'Sort by list position (#)' : 'Sort by accepted record date';
+  const sortDirectionLabel =
+    sortMode === 'position'
+      ? sortDirection === 'asc'
+        ? 'Position ascending (hardest first)'
+        : 'Position descending (easiest first)'
+      : sortDirection === 'asc'
+        ? 'Record date ascending (oldest accepted first)'
+        : 'Record date descending (most recently accepted first)';
+
   return (
     <aside id={id} class="filters-panel" aria-hidden={open ? undefined : true}>
       <div class="filters-panel__header">
@@ -65,13 +81,20 @@ export function FiltersPanel({
           <button
             class="filters-panel__icon-btn"
             type="button"
+            onClick={onToggleSortMode}
+            aria-pressed={sortMode === 'record_date'}
+            aria-label={sortModeLabel}
+            title={sortModeLabel}
+          >
+            <SortModeIcon mode={sortMode} />
+          </button>
+          <button
+            class="filters-panel__icon-btn"
+            type="button"
             onClick={onToggleSortDirection}
             aria-pressed={sortDirection === 'desc'}
-            aria-label={
-              sortDirection === 'asc'
-                ? 'Sort ascending (hardest first)'
-                : 'Sort descending (easiest first)'
-            }
+            aria-label={sortDirectionLabel}
+            title={sortDirectionLabel}
           >
             <SortDirectionIcon direction={sortDirection} />
           </button>

@@ -20,6 +20,8 @@ pub struct StoredLevelFilters {
 pub struct StoredUserPreferences {
     pub filters: StoredLevelFilters,
     pub sort_direction: String,
+    #[serde(default = "default_sort_mode")]
+    pub sort_mode: String,
 }
 
 const VALID_CLAIM_KINDS: &[&str] = &[
@@ -42,7 +44,12 @@ pub fn default_preferences() -> StoredUserPreferences {
             position_max: None,
         },
         sort_direction: "asc".into(),
+        sort_mode: default_sort_mode(),
     }
+}
+
+fn default_sort_mode() -> String {
+    "position".into()
 }
 
 pub fn parse_preferences_json(json: Option<&str>) -> StoredUserPreferences {
@@ -55,6 +62,9 @@ pub fn parse_preferences_json(json: Option<&str>) -> StoredUserPreferences {
 pub fn validate_preferences(prefs: &StoredUserPreferences) -> Result<(), &'static str> {
     if prefs.sort_direction != "asc" && prefs.sort_direction != "desc" {
         return Err("sortDirection must be asc or desc");
+    }
+    if prefs.sort_mode != "position" && prefs.sort_mode != "record_date" {
+        return Err("sortMode must be position or record_date");
     }
     for kind in &prefs.filters.board_claim_kinds {
         if !VALID_CLAIM_KINDS.contains(&kind.as_str()) {

@@ -29,11 +29,20 @@ export function BoardPage() {
   }, []);
 
   const { filtersOpen, toggleFilters, closeFilters } = useFilters();
-  const { filters, setFilter, sortDirection, toggleSortDirection, resetToDefaults } =
+  const {
+    filters,
+    setFilter,
+    sortDirection,
+    sortMode,
+    toggleSortDirection,
+    toggleSortMode,
+    resetToDefaults,
+  } =
     useUserPreferences(user);
   const signedIn = user !== null && user !== undefined;
   const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
     filters,
+    sortMode,
     sortDirection,
     user ?? null,
   );
@@ -127,6 +136,8 @@ export function BoardPage() {
             user={user ?? null}
             filters={filters}
             onFilterChange={setFilter}
+            sortMode={sortMode}
+            onToggleSortMode={toggleSortMode}
             sortDirection={sortDirection}
             onToggleSortDirection={toggleSortDirection}
             onResetFilters={resetToDefaults}

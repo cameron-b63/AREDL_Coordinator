@@ -102,7 +102,7 @@ pub async fn put_preferences(mut req: Request, ctx: RouteContext<()>) -> Result<
             return json_error(
                 400,
                 "invalid_body",
-                "Expected JSON body with filters and sortDirection",
+                "Expected JSON body with filters, sortDirection, and sortMode",
             );
         }
     };

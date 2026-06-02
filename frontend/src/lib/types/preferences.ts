@@ -3,7 +3,12 @@ import {
   DEFAULT_LEVEL_FILTERS,
   type LevelFilters,
 } from './filters';
-import { DEFAULT_SORT_DIRECTION, type SortDirection } from './sort';
+import {
+  DEFAULT_SORT_DIRECTION,
+  DEFAULT_SORT_MODE,
+  type SortDirection,
+  type SortMode,
+} from './sort';
 
 export interface StoredLevelFilters {
   excludeCompleted: boolean;
@@ -19,12 +24,14 @@ export interface StoredLevelFilters {
 export interface UserPreferences {
   filters: StoredLevelFilters;
   sortDirection: SortDirection;
+  sortMode: SortMode;
 }
 
 export function defaultUserPreferences(): UserPreferences {
   return {
     filters: storedFromLevelFilters(DEFAULT_LEVEL_FILTERS),
     sortDirection: DEFAULT_SORT_DIRECTION,
+    sortMode: DEFAULT_SORT_MODE,
   };
 }
 
@@ -65,6 +72,8 @@ export function normalizeUserPreferences(
   }
   const sortDirection =
     raw.sortDirection === 'desc' ? 'desc' : DEFAULT_SORT_DIRECTION;
+  const sortMode =
+    raw.sortMode === 'record_date' ? 'record_date' : DEFAULT_SORT_MODE;
   return {
     filters: {
       ...defaultUserPreferences().filters,
@@ -72,5 +81,6 @@ export function normalizeUserPreferences(
       boardClaimKinds: raw.filters.boardClaimKinds ?? [],
     },
     sortDirection,
+    sortMode,
   };
 }

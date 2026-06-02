@@ -80,24 +80,3 @@ fn clear_cookie_header(name: &str) -> String {
     format!("{name}=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0")
 }
 
-pub fn frontend_session_redirect_url(base: &str, token: &str) -> String {
-    let encoded = url_encode(token);
-    if base.contains('?') {
-        format!("{base}&session={encoded}")
-    } else {
-        format!("{base}?session={encoded}")
-    }
-}
-
-fn url_encode(value: &str) -> String {
-    let mut encoded = String::with_capacity(value.len());
-    for byte in value.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                encoded.push(byte as char);
-            }
-            _ => encoded.push_str(&format!("%{byte:02X}")),
-        }
-    }
-    encoded
-}

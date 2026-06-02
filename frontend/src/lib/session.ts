@@ -1,26 +1,22 @@
-const SESSION_KEY = 'aredl_session';
-
 export function getSessionToken(): string | null {
-  return sessionStorage.getItem(SESSION_KEY);
+  return null;
 }
 
-export function setSessionToken(token: string) {
-  sessionStorage.setItem(SESSION_KEY, token);
+export function setSessionToken(_token: string) {
+  // Session storage is intentionally unused.
 }
 
 export function clearSessionToken() {
-  sessionStorage.removeItem(SESSION_KEY);
+  // Session storage is intentionally unused.
 }
 
 /** Read JWT from `?session=…` after OAuth redirect; strip it from the URL. */
 export function consumeSessionFromUrl(): boolean {
   const params = new URLSearchParams(window.location.search);
-  const token = params.get('session');
-  if (!token) {
+  if (!params.has('session')) {
     return false;
   }
 
-  setSessionToken(token);
   params.delete('session');
   const query = params.toString();
   const nextUrl = query

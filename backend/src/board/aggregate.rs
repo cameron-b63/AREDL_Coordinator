@@ -93,6 +93,7 @@ pub fn build_board(
 
     let total_count = levels.len() as i32;
     let mut completed_count = 0i32;
+    let mut supposedly_completed_count = 0i32;
 
     let board_levels: Vec<BoardLevel> = levels
         .into_iter()
@@ -149,6 +150,17 @@ pub fn build_board(
                         discord_id: claim.discord_id.clone(),
                     },
                 });
+            if matches!(completion.state, CompletionState::Uncompleted)
+                && active
+                    .as_ref()
+                    .map(|claim| claim.kind == "supposedly_completed")
+                    .unwrap_or(false)
+            {
+                supposedly_completed_count += 1;
+            }
+            let record_achieved_at = completions
+                .get(&level.id)
+                .map(|entry| entry.achieved_at.clone());
 
             BoardLevel {
                 id: level.id,
@@ -160,6 +172,7 @@ pub fn build_board(
                 tags,
                 list_page_url,
                 clan_verification_video_url,
+                record_achieved_at,
                 completion,
                 claim: ClaimInfo {
                     menu_enabled,
@@ -172,6 +185,7 @@ pub fn build_board(
     BoardResponse {
         summary: BoardSummary {
             completed_count,
+            supposedly_completed_count,
             total_count,
         },
         levels: board_levels,

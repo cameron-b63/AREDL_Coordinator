@@ -3,8 +3,8 @@ import { fetchBoard, ApiError } from '../lib/api';
 import type { ActiveClaim, BoardLevel, BoardSummary } from '../lib/types/board';
 import { applyLevelFilters } from '../lib/types/filters';
 import type { LevelFilters } from '../lib/types/filters';
-import { sortLevelsByPosition } from '../lib/types/sort';
-import type { SortDirection } from '../lib/types/sort';
+import { sortLevelsByPosition, sortLevelsByRecordDate } from '../lib/types/sort';
+import type { SortDirection, SortMode } from '../lib/types/sort';
 import type { User } from '../lib/types/user';
 
 export type LevelsState =
@@ -14,6 +14,7 @@ export type LevelsState =
 
 export function useLevels(
   filters: LevelFilters,
+  sortMode: SortMode,
   sortDirection: SortDirection,
   user: User | null,
 ) {
@@ -67,8 +68,11 @@ export function useLevels(
   const filteredLevels = useMemo(() => {
     if (state.status !== 'ready') return [];
     const filtered = applyLevelFilters(state.levels, filters, user, query);
+    if (sortMode === 'record_date') {
+      return sortLevelsByRecordDate(filtered, sortDirection);
+    }
     return sortLevelsByPosition(filtered, sortDirection);
-  }, [state, query, filters, sortDirection, user]);
+  }, [state, query, filters, sortMode, sortDirection, user]);
 
   const summary = state.status === 'ready' ? state.summary : null;
 

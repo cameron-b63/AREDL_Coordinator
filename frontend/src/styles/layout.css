@@ -56,9 +56,25 @@
 }
 
 .clan-progress__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   background: var(--color-accent);
   transition: width 0.35s ease;
+}
+
+.clan-progress__fill--extended {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-progress-extended) 0,
+      var(--color-progress-extended) 6px,
+      rgba(0, 0, 0, 0) 6px,
+      rgba(0, 0, 0, 0) 12px
+    ),
+    var(--color-progress-extended-base);
+  transition: width 0.35s ease, left 0.35s ease;
 }
 
 .clan-progress__outcrop {
@@ -93,6 +109,76 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-muted-on-dark);
+}
+
+.clan-progress__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 1px;
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-muted-on-dark);
+  text-transform: uppercase;
+}
+
+.clan-progress__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.clan-progress__legend-swatch {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.35rem;
+  border: 1px solid var(--color-border);
+}
+
+.clan-progress__legend-swatch--base {
+  background: var(--color-accent);
+}
+
+.clan-progress__legend-swatch--extended {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-progress-extended) 0,
+      var(--color-progress-extended) 2px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0) 4px
+    ),
+    var(--color-progress-extended-base);
+}
+
+.clan-progress__toggle {
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clan-progress__toggle:disabled {
+  border-bottom-style: dotted;
+  opacity: 0.9;
+  cursor: default;
+}
+
+.clan-progress__toggle--extended {
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 0.1rem;
+}
+
+.clan-progress__toggle:focus-visible {
+  outline: 2px solid var(--color-progress-extended);
+  outline-offset: 2px;
 }
 
 .app-header {

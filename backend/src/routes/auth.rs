@@ -1,8 +1,7 @@
 use crate::auth::{
     auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
-    exchange_code, fetch_member_roles, fetch_user, frontend_session_redirect_url,
-    new_oauth_state, oauth_state_from_request, redirect_response, set_oauth_state_cookie,
-    set_session_cookie, sign_session, upsert_user,
+    exchange_code, fetch_member_roles, fetch_user, new_oauth_state, oauth_state_from_request,
+    redirect_response, set_oauth_state_cookie, set_session_cookie, sign_session, upsert_user,
 };
 use crate::env::{self, frontend_redirect_url, oauth_callback_url};
 use serde::Deserialize;
@@ -83,9 +82,8 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
 
     let token = sign_session(&user.id, is_admin, &jwt_secret)?;
     let frontend = frontend_redirect_url(&ctx.env)?;
-    let redirect_target = frontend_session_redirect_url(&frontend, &token);
 
-    let response = redirect_response(&redirect_target)?;
+    let response = redirect_response(&frontend)?;
     clear_oauth_state_cookie(&response)?;
     set_session_cookie(&response, &token)?;
     Ok(response)
