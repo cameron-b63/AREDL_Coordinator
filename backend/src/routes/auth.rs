@@ -2,6 +2,7 @@ use crate::auth::{
     auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
     exchange_code, fetch_member_roles, fetch_user, new_oauth_state, oauth_state_from_request,
     redirect_response, set_oauth_state_cookie, set_session_cookie, sign_session, upsert_user,
+    CookieOptions,
 };
 use crate::env::{self, frontend_redirect_url, oauth_callback_url};
 use serde::Deserialize;
@@ -18,15 +19,18 @@ pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Respon
     let client_id = env::discord_client_id(&ctx.env)?;
     let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
+    let cookie_options = cookie_options_for_url(&req_url);
     let state = new_oauth_state();
     let authorize = authorize_url(&client_id, &redirect_uri, &state);
 
     let response = redirect_response(&authorize)?;
-    set_oauth_state_cookie(&response, &state)?;
+    set_oauth_state_cookie(&response, &state, cookie_options)?;
     Ok(response)
 }
 
 pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let req_url = req.url()?;
+    let cookie_options = cookie_options_for_url(&req_url);
     let query: CallbackQuery = req.query()?;
 
     if query.error.is_some() {
@@ -46,7 +50,6 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
         return auth_error_redirect(&ctx.env, "invalid oauth state");
     }
 
-    let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
     let client_id = env::discord_client_id(&ctx.env)?;
     let client_secret = env::discord_client_secret(&ctx.env)?;
@@ -84,14 +87,22 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
     let frontend = frontend_redirect_url(&ctx.env)?;
 
     let response = redirect_response(&frontend)?;
-    clear_oauth_state_cookie(&response)?;
-    set_session_cookie(&response, &token)?;
+    clear_oauth_state_cookie(&response, cookie_options)?;
+    set_session_cookie(&response, &token, cookie_options)?;
     Ok(response)
 }
 
-pub async fn discord_logout(_req: Request, ctx: RouteContext<()>) -> Result<Response> {
+pub async fn discord_logout(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let req_url = req.url()?;
+    let cookie_options = cookie_options_for_url(&req_url);
     let frontend = frontend_redirect_url(&ctx.env)?;
     let response = redirect_response(&frontend)?;
-    clear_session_cookie(&response)?;
+    clear_session_cookie(&response, cookie_options)?;
     Ok(response)
+}
+
+fn cookie_options_for_url(url: &worker::Url) -> CookieOptions {
+    CookieOptions {
+        secure: url.scheme() == "https",
+    }
 }

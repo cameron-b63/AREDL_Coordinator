@@ -16,4 +16,5 @@ pub use jwt::{sign_session, verify_session, SessionIdentity};
 pub use session::{
     clear_oauth_state_cookie, clear_session_cookie, new_oauth_state, oauth_state_from_request,
     redirect_response, session_token_from_request, set_oauth_state_cookie, set_session_cookie,
+    CookieOptions,
 };
