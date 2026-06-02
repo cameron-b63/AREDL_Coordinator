@@ -168,7 +168,10 @@ export function putPreferences(preferences: UserPreferences) {
 }
 
 export function signInUrl(): string {
-  return `${API_URL}/auth/discord`;
+  const authUrl = new URL(`${API_URL}/auth/discord`);
+  const returnTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+  authUrl.searchParams.set('return_to', returnTo);
+  return authUrl.toString();
 }
 
 export function signOutUrl(): string {

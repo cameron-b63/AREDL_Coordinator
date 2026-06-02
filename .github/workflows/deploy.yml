@@ -144,6 +144,35 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Check frontend/backend auth config drift
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api_url="$(rg '^VITE_API_URL=' .env.production | sed 's/^VITE_API_URL=//')"
+          frontend_origin="$(rg '^FRONTEND_ORIGIN = ' ../backend/wrangler.toml | sed 's/^FRONTEND_ORIGIN = \"//; s/\"$//')"
+          frontend_base_path="$(rg '^FRONTEND_BASE_PATH = ' ../backend/wrangler.toml | sed 's/^FRONTEND_BASE_PATH = \"//; s/\"$//')"
+
+          if [[ -z "$api_url" || -z "$frontend_origin" || -z "$frontend_base_path" ]]; then
+            echo "Missing VITE_API_URL or backend frontend origin/base path configuration."
+            exit 1
+          fi
+
+          if [[ "$api_url" != https://* ]]; then
+            echo "VITE_API_URL must be https in production. Got: $api_url"
+            exit 1
+          fi
+
+          if [[ "$frontend_origin" != https://* ]]; then
+            echo "FRONTEND_ORIGIN must be https. Got: $frontend_origin"
+            exit 1
+          fi
+
+          if [[ "$frontend_base_path" != /* ]]; then
+            echo "FRONTEND_BASE_PATH must start with '/'. Got: $frontend_base_path"
+            exit 1
+          fi
+
       - run: npm ci && npm run build
 
       - uses: peaceiris/actions-gh-pages@v4

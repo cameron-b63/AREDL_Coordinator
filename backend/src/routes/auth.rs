@@ -1,12 +1,18 @@
 use crate::auth::{
-    auth_error_redirect, authorize_url, avatar_url, clear_oauth_state_cookie, clear_session_cookie,
-    exchange_code, fetch_member_roles, fetch_user, frontend_session_redirect_url, new_oauth_state,
-    oauth_state_from_request, redirect_response, set_oauth_state_cookie, set_session_cookie,
-    sign_session, upsert_user,
+    auth_error_redirect, authorize_url, avatar_url, clear_oauth_return_to_cookie,
+    clear_oauth_state_cookie, clear_session_cookie, exchange_code, fetch_member_roles, fetch_user,
+    frontend_session_redirect_url, new_oauth_state, oauth_return_to_from_request,
+    oauth_state_from_request, redirect_response, set_oauth_return_to_cookie, set_oauth_state_cookie,
+    set_session_cookie, sign_session, upsert_user,
 };
-use crate::env::{self, frontend_redirect_url, oauth_callback_url};
+use crate::env::{self, frontend_redirect_url, oauth_callback_url, validate_frontend_return_to};
 use serde::Deserialize;
 use worker::{Request, Response, Result, RouteContext};
+
+#[derive(Deserialize)]
+struct LoginQuery {
+    return_to: Option<String>,
+}
 
 #[derive(Deserialize)]
 struct CallbackQuery {
@@ -16,6 +22,7 @@ struct CallbackQuery {
 }
 
 pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Response> {
+    let query: LoginQuery = req.query()?;
     let client_id = env::discord_client_id(&ctx.env)?;
     let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
@@ -24,6 +31,11 @@ pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Respon
 
     let response = redirect_response(&authorize)?;
     set_oauth_state_cookie(&response, &state)?;
+    if let Some(return_to) = query.return_to {
+        if let Some(validated) = validate_frontend_return_to(&ctx.env, &return_to) {
+            set_oauth_return_to_cookie(&response, &validated)?;
+        }
+    }
     Ok(response)
 }
 
@@ -82,11 +94,12 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
     .await?;
 
     let token = sign_session(&user.id, is_admin, &jwt_secret)?;
-    let frontend = frontend_redirect_url(&ctx.env)?;
+    let frontend = oauth_return_to_from_request(&req).unwrap_or(frontend_redirect_url(&ctx.env)?);
     let redirect_target = frontend_session_redirect_url(&frontend, &token);
 
     let response = redirect_response(&redirect_target)?;
     clear_oauth_state_cookie(&response)?;
+    clear_oauth_return_to_cookie(&response)?;
     set_session_cookie(&response, &token)?;
     Ok(response)
 }

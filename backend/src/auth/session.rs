@@ -3,6 +3,7 @@ use worker::{Request, Response, Result};
 
 pub const SESSION_COOKIE: &str = "session";
 pub const OAUTH_STATE_COOKIE: &str = "oauth_state";
+pub const OAUTH_RETURN_TO_COOKIE: &str = "oauth_return_to";
 
 const OAUTH_STATE_TTL_SECS: u64 = 600;
 const SESSION_TTL_SECS: u64 = 7 * 24 * 60 * 60;
@@ -23,6 +24,11 @@ pub fn oauth_state_from_request(req: &Request) -> Option<String> {
     cookie_value(req, OAUTH_STATE_COOKIE)
 }
 
+pub fn oauth_return_to_from_request(req: &Request) -> Option<String> {
+    let value = cookie_value(req, OAUTH_RETURN_TO_COOKIE)?;
+    url_decode(&value)
+}
+
 pub fn set_oauth_state_cookie(response: &Response, state: &str) -> Result<()> {
     append_set_cookie(
         response,
@@ -32,6 +38,21 @@ pub fn set_oauth_state_cookie(response: &Response, state: &str) -> Result<()> {
 
 pub fn clear_oauth_state_cookie(response: &Response) -> Result<()> {
     append_set_cookie(response, &clear_cookie_header(OAUTH_STATE_COOKIE))
+}
+
+pub fn set_oauth_return_to_cookie(response: &Response, return_to: &str) -> Result<()> {
+    append_set_cookie(
+        response,
+        &cookie_header(
+            OAUTH_RETURN_TO_COOKIE,
+            &url_encode(return_to),
+            OAUTH_STATE_TTL_SECS,
+        ),
+    )
+}
+
+pub fn clear_oauth_return_to_cookie(response: &Response) -> Result<()> {
+    append_set_cookie(response, &clear_cookie_header(OAUTH_RETURN_TO_COOKIE))
 }
 
 pub fn set_session_cookie(response: &Response, token: &str) -> Result<()> {
@@ -100,5 +121,35 @@ fn url_encode(value: &str) -> String {
         }
     }
     encoded
+}
+
+fn url_decode(value: &str) -> Option<String> {
+    let bytes = value.as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'%' if i + 2 < bytes.len() => {
+                let hi = from_hex(bytes[i + 1])?;
+                let lo = from_hex(bytes[i + 2])?;
+                decoded.push((hi << 4) | lo);
+                i += 3;
+            }
+            byte => {
+                decoded.push(byte);
+                i += 1;
+            }
+        }
+    }
+    String::from_utf8(decoded).ok()
+}
+
+fn from_hex(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    }
 }
 
