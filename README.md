@@ -96,6 +96,12 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
 
 Also ensure `FRONTEND_BASE_PATH = "/AREDL_Coordinator"` is set in [`backend/wrangler.toml`](backend/wrangler.toml) so post-login redirects land on the GitHub Pages app path.
 
+### OAuth cookie behavior
+
+- OAuth transient cookies (`oauth_state`, `oauth_return_to`) use `SameSite=Lax`, `HttpOnly`, and `Secure`.
+- Session cookie (`session`) uses `SameSite=None`, `HttpOnly`, and `Secure` so frontend API calls can include credentials across origins.
+- If signin fails with `missing oauth state cookie`, inspect the `/auth/discord` response for `Set-Cookie` and confirm the `/auth/discord/callback` request includes a `Cookie` header.
+
 ## Local development
 
 Requires Node.js 22+. For manual deploys, also run `make setup-rust` once to install `worker-build` (Wrangler dev runs the build automatically).

@@ -7,7 +7,7 @@ use crate::auth::{
 };
 use crate::env::{self, frontend_redirect_url, oauth_callback_url, validate_frontend_return_to};
 use serde::Deserialize;
-use worker::{Request, Response, Result, RouteContext};
+use worker::{console_log, Request, Response, Result, RouteContext};
 
 #[derive(Deserialize)]
 struct LoginQuery {
@@ -41,6 +41,11 @@ pub async fn discord_login(req: Request, ctx: RouteContext<()>) -> Result<Respon
 
 pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Response> {
     let query: CallbackQuery = req.query()?;
+    let has_query_state = query.state.is_some();
+    let req_url = req.url()?;
+    let callback_host = req_url.host_str().unwrap_or("unknown");
+    let callback_path = req_url.path().to_string();
+    let has_cookie_header = req.headers().get("Cookie").ok().flatten().is_some();
 
     if query.error.is_some() {
         return auth_error_redirect(&ctx.env, "discord authorization denied");
@@ -53,13 +58,29 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
         .state
         .ok_or_else(|| "missing oauth state".to_string())?;
 
-    let stored_state = oauth_state_from_request(&req)
-        .ok_or_else(|| "missing oauth state cookie".to_string())?;
+    let stored_state = match oauth_state_from_request(&req) {
+        Some(value) => value,
+        None => {
+            console_log!(
+                "oauth_callback_missing_state_cookie host={} path={} has_cookie_header={} has_query_state={}",
+                callback_host,
+                callback_path,
+                has_cookie_header,
+                has_query_state
+            );
+            return Err("missing oauth state cookie".into());
+        }
+    };
     if stored_state != state {
+        console_log!(
+            "oauth_callback_state_mismatch host={} path={} has_cookie_header={}",
+            callback_host,
+            callback_path,
+            has_cookie_header
+        );
         return auth_error_redirect(&ctx.env, "invalid oauth state");
     }
 
-    let req_url = req.url()?;
     let redirect_uri = oauth_callback_url(&req_url);
     let client_id = env::discord_client_id(&ctx.env)?;
     let client_secret = env::discord_client_secret(&ctx.env)?;
