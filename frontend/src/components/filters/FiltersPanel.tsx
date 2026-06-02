@@ -70,8 +70,8 @@ export function FiltersPanel({
         ? 'Position ascending (hardest first)'
         : 'Position descending (easiest first)'
       : sortDirection === 'asc'
-        ? 'Record date ascending (oldest accepted first)'
-        : 'Record date descending (most recently accepted first)';
+        ? 'Record date ascending (most recently accepted first)'
+        : 'Record date descending (oldest accepted first)';
 
   return (
     <aside id={id} class="filters-panel" aria-hidden={open ? undefined : true}>

@@ -26,8 +26,8 @@ export function sortLevelsByRecordDate<T extends { recordAchievedAt?: string }>(
   const sorted = [...withRecordDate];
   sorted.sort((a, b) =>
     direction === 'asc'
-      ? a.recordAchievedAt.localeCompare(b.recordAchievedAt)
-      : b.recordAchievedAt.localeCompare(a.recordAchievedAt),
+      ? b.recordAchievedAt.localeCompare(a.recordAchievedAt)
+      : a.recordAchievedAt.localeCompare(b.recordAchievedAt),
   );
   return sorted;
 }
