@@ -6,7 +6,7 @@ compatibility_date = "2025-10-11"
 command = "worker-build --release"
 
 [vars]
-FRONTEND_ORIGIN = "https://cameron-b63.github.io,https://cameron-bond63.github.io"
+FRONTEND_ORIGIN = "https://cameron-b63.github.io"
 FRONTEND_BASE_PATH = "/AREDL_Coordinator"
 AREDL_API_BASE = "https://api.aredl.net/v2/api"
 AREDL_CLAN_ID = "66fe1773-8ece-4f1e-a252-65786ae11f02"

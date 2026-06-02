@@ -12,23 +12,13 @@ pub fn normalize_origin(configured: &str) -> String {
 }
 
 pub fn cors_allow_origin(req: &Request, configured: &str) -> String {
-    let allowed = allowed_origins(configured);
-    let fallback = allowed.first().cloned().unwrap_or_default();
+    let allowed = normalize_origin(configured);
     if let Ok(Some(request_origin)) = req.headers().get("Origin") {
-        if allowed.iter().any(|origin| origin == &request_origin) {
+        if request_origin == allowed {
             return request_origin;
         }
     }
-    fallback
-}
-
-fn allowed_origins(configured: &str) -> Vec<String> {
-    configured
-        .split(',')
-        .map(str::trim)
-        .filter(|origin| !origin.is_empty())
-        .map(normalize_origin)
-        .collect()
+    allowed
 }
 
 fn cors_headers(existing: &Headers, origin: &str) -> Result<Headers> {
