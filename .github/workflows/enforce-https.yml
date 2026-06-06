@@ -27,6 +27,7 @@ jobs:
           curl -sI "https://nshbeatsthearedl.christmas" | head -5
 
       - name: Provision GitHub Pages cert and enforce HTTPS
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -51,6 +52,7 @@ jobs:
           echo "$RESPONSE" | python3 -c "import sys,json; sys.exit(0 if json.load(sys.stdin).get('success') else 1)"
 
       - name: Final verification
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
