@@ -34,11 +34,14 @@ backend/    Rust Worker + D1 migrations
    ```
 
 5. Copy the `database_id` from the output into [`backend/wrangler.toml`](backend/wrangler.toml).
-6. Update `FRONTEND_ORIGIN` in `wrangler.toml` to your GitHub Pages CORS origin (scheme + host only, no repo path), e.g.:
+6. Update `FRONTEND_ORIGIN` and `FRONTEND_BASE_PATH` in `wrangler.toml` to match your GitHub Pages URL:
 
    ```
-   https://<github-username>.github.io
+   FRONTEND_ORIGIN = "https://nshbeatsthearedl.christmas"
+   FRONTEND_BASE_PATH = ""
    ```
+
+   For a project site at `https://<github-username>.github.io/<repo-name>/` instead, use the host for `FRONTEND_ORIGIN` and set `FRONTEND_BASE_PATH = "/<repo-name>"`.
 
 7. Apply migrations locally (optional):
 
@@ -69,7 +72,7 @@ Update [`frontend/.env.production`](frontend/.env.production) with your deployed
 VITE_API_URL=https://aredl-coordinator.<your-subdomain>.workers.dev
 ```
 
-Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + host, no path). Browsers send `Origin` without the repo path even when the app is served from a subpath like `/AREDL_Coordinator/`.
+Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + host, no path). With a custom domain at the site root, set `FRONTEND_BASE_PATH = ""`. If serving from a subpath like `username.github.io/repo-name/`, set `FRONTEND_BASE_PATH = "/repo-name"`.
 
 ### 4. Discord OAuth
 
@@ -92,9 +95,7 @@ Also ensure `FRONTEND_ORIGIN` in `wrangler.toml` is the CORS origin (scheme + ho
 
    Or sync from local `.dev.vars` after a manual deploy: `make sync-secrets`
 
-6. For local dev, copy [`backend/.dev.vars.example`](backend/.dev.vars.example) to `backend/.dev.vars` and fill in the values. Set `FRONTEND_ORIGIN=http://localhost:5173`.
-
-Also ensure `FRONTEND_BASE_PATH = "/AREDL_Coordinator"` is set in [`backend/wrangler.toml`](backend/wrangler.toml) so post-login redirects land on the GitHub Pages app path.
+6. For local dev, copy [`backend/.dev.vars.example`](backend/.dev.vars.example) to `backend/.dev.vars` and fill in the values. Set `FRONTEND_ORIGIN=http://localhost:5173`. Leave `FRONTEND_BASE_PATH` unset (defaults to `""`) when the Vite dev server uses `base: '/'`.
 
 ### OAuth cookie behavior
 

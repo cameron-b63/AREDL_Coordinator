@@ -8,7 +8,7 @@ pub fn frontend_origin(env: &Env) -> Result<String> {
 pub fn frontend_base_path(env: &Env) -> Result<String> {
     match env.var("FRONTEND_BASE_PATH") {
         Ok(value) => Ok(value.to_string()),
-        Err(_) => Ok("/AREDL_Coordinator".to_string()),
+        Err(_) => Ok(String::new()),
     }
 }
 
@@ -94,22 +94,22 @@ mod tests {
 
     #[test]
     fn accepts_return_to_on_allowed_origin() {
-        let allowed = "https://cameron-b63.github.io";
-        let candidate = "https://cameron-b63.github.io/AREDL_Coordinator/?tab=claims";
+        let allowed = "https://example.com";
+        let candidate = "https://example.com/?tab=claims";
         let result = validate_return_to_with_allowed_origin(allowed, candidate);
         assert_eq!(result.as_deref(), Some(candidate));
     }
 
     #[test]
     fn rejects_return_to_on_different_origin() {
-        let allowed = "https://cameron-b63.github.io";
-        let candidate = "https://evil.example/AREDL_Coordinator/";
+        let allowed = "https://example.com";
+        let candidate = "https://evil.example/";
         assert!(validate_return_to_with_allowed_origin(allowed, candidate).is_none());
     }
 
     #[test]
     fn rejects_invalid_return_to_url() {
-        let allowed = "https://cameron-b63.github.io";
+        let allowed = "https://example.com";
         assert!(validate_return_to_with_allowed_origin(allowed, "/relative/path").is_none());
     }
 }
