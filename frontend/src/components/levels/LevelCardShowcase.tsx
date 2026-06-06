@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { ExternalLinkIcon } from '../ui/ExternalLinkIcon';
+import { VideoIcon } from '../ui/VideoIcon';
 import { ApiError, fetchShowcaseVideo } from '../../lib/api';
 import type { BoardLevel } from '../../lib/types/board';
 
@@ -56,7 +56,7 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
         aria-label="Open level showcase video"
         onClick={(e) => e.stopPropagation()}
       >
-        <ExternalLinkIcon />
+        <VideoIcon />
       </a>
     );
   }
@@ -70,7 +70,7 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
       aria-label={title}
       onClick={openShowcase}
     >
-      <ExternalLinkIcon />
+      <VideoIcon />
     </button>
   );
 }

@@ -170,11 +170,24 @@
 
 .level-card__rank,
 .level-card__dash,
-.level-card__name {
+.level-card__name,
+.level-card__title-text {
   white-space: nowrap;
 }
 
+.level-card__title-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
 .level-card__id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   flex-shrink: 0;
   margin: 0;
   padding: 0;
@@ -193,6 +206,16 @@
   color: var(--color-accent);
 }
 
+.level-card__id--copied {
+  color: var(--color-accent);
+}
+
+.level-card__meta-icon {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
 @media (hover: none), (pointer: coarse) {
   .level-card__id {
     cursor: default;
@@ -204,7 +227,6 @@
 }
 
 .level-card__name {
-  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -237,10 +259,6 @@
   transition: color 0.1s ease;
 }
 
-.level-card__showcase .external-link-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
 
 .level-card__showcase:hover:not(:disabled) {
   color: var(--color-accent);

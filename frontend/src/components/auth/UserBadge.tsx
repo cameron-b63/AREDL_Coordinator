@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { signOutUrl } from '../../lib/api';
+import { settingsPath } from '../../lib/paths';
 import { clearSessionToken } from '../../lib/session';
 import type { User } from '../../lib/types/user';
 
 interface UserBadgeProps {
   user: User;
-}
-
-function settingsPath(): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return `${base}/settings`;
 }
 
 export function UserBadge({ user }: UserBadgeProps) {

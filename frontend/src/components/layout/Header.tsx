@@ -1,3 +1,4 @@
+import { adminPath } from '../../lib/paths';
 import { DISCORD_GUILD_ICON_URL } from '../../lib/site';
 import type { User } from '../../lib/types/user';
 import { SignInButton } from '../auth/SignInButton';
@@ -19,11 +20,6 @@ interface HeaderProps {
   statsOpen: boolean;
   onToggleStats: () => void;
   adminPage?: boolean;
-}
-
-function adminPath(): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return `${base}/admin`;
 }
 
 export function Header({

@@ -7,6 +7,7 @@ import {
 } from '../../lib/types/filters';
 import type { ClaimKind } from '../../lib/types/claim';
 import type { SortDirection, SortMode } from '../../lib/types/sort';
+import { settingsPath } from '../../lib/paths';
 import type { User } from '../../lib/types/user';
 
 interface FiltersPanelProps {
@@ -22,11 +23,6 @@ interface FiltersPanelProps {
   onToggleSortDirection: () => void;
   onResetFilters: () => void;
   onClose: () => void;
-}
-
-function settingsPath(): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return `${base}/settings`;
 }
 
 function parseOptionalInt(value: string): number | null {

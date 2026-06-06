@@ -4,11 +4,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { Header } from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
 import { adminPruneClaims, ApiError } from '../lib/api';
-
-function homePath(): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  return base || '/';
-}
+import { boardPath } from '../lib/paths';
 
 export function AdminPortal() {
   const { user } = useAuth();
@@ -63,7 +59,7 @@ export function AdminPortal() {
         ) : !authorized ? (
           <div class="admin-portal__denied">
             <p class="admin-portal__message">You are not authorized to view this page.</p>
-            <a class="admin-portal__link" href={homePath()}>
+            <a class="admin-portal__link" href={boardPath()}>
               Back to board
             </a>
           </div>
@@ -90,7 +86,7 @@ export function AdminPortal() {
               <ClaimsSqlBrowser />
             </section>
             <p class="admin-portal__footer">
-              <a class="admin-portal__link" href={homePath()}>
+              <a class="admin-portal__link" href={boardPath()}>
                 Back to board
               </a>
             </p>

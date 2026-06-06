@@ -13,6 +13,7 @@ import type { User } from '../../lib/types/user';
 import { AssigneeBubble } from './AssigneeBubble';
 import { ClaimMenu } from './ClaimMenu';
 import { LevelCardActions } from './LevelCardActions';
+import { CopyIcon } from '../ui/CopyIcon';
 import { LevelCardShowcase } from './LevelCardShowcase';
 
 interface LevelCardProps {
@@ -101,17 +102,21 @@ export function LevelCard({
         <h2 class="level-card__title">
           <span class="level-card__rank">#{level.position}</span>
           <span class="level-card__dash"> - </span>
-          <span class="level-card__name">{level.name}</span>
-          <span class="level-card__meta">
-            <button
-              type="button"
-              class="level-card__id"
-              title={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
-              onClick={handleCopyId}
-            >
-              ({level.gameLevelId})
-            </button>
-            <LevelCardShowcase level={level} />
+          <span class="level-card__title-text">
+            <span class="level-card__name">{level.name}</span>
+            <span class="level-card__meta">
+              <button
+                type="button"
+                class={`level-card__id${copied ? ' level-card__id--copied' : ''}`}
+                title={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
+                aria-label={copied ? 'Copied!' : `Copy level ID ${level.gameLevelId}`}
+                onClick={handleCopyId}
+              >
+                ({level.gameLevelId})
+                <CopyIcon copied={copied} />
+              </button>
+              <LevelCardShowcase level={level} />
+            </span>
           </span>
         </h2>
         <AssigneeBubble

@@ -5,13 +5,10 @@ import { deleteManualHardest, fetchLevels, putManualHardest } from '../lib/api';
 import { resolveLevelNameByPosition } from '../lib/levelLookup';
 import { useAuth } from '../hooks/useAuth';
 import type { Level } from '../lib/types/level';
+import { boardPath } from '../lib/paths';
 import type { UserHardest } from '../lib/types/user';
 
 const LOOKUP_DEBOUNCE_MS = 300;
-
-function boardPath(): string {
-  return import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
-}
 
 function settingsHardestLabel(hardest: UserHardest | null): string {
   if (!hardest) return 'Not set';

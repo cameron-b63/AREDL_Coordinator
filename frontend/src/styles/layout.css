@@ -112,13 +112,19 @@
   font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.clan-progress__percent-confirmed {
+  font-weight: 600;
   color: var(--color-muted-on-dark);
 }
 
-.clan-progress__legend {
+.clan-progress__breakdown {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: 0.25rem;
   font-family: var(--font-body);
   font-size: 0.625rem;
   font-weight: 700;
@@ -127,24 +133,28 @@
   text-transform: uppercase;
 }
 
-.clan-progress__legend-item {
+.clan-progress__breakdown-item {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.clan-progress__legend-swatch {
+.clan-progress__breakdown-sep {
+  opacity: 0.6;
+}
+
+.clan-progress__swatch {
   display: inline-block;
   width: 0.55rem;
   height: 0.35rem;
   border: 1px solid var(--color-border);
 }
 
-.clan-progress__legend-swatch--base {
+.clan-progress__swatch--base {
   background: var(--color-accent);
 }
 
-.clan-progress__legend-swatch--extended {
+.clan-progress__swatch--extended {
   background:
     repeating-linear-gradient(
       -45deg,
@@ -154,34 +164,6 @@
       rgba(0, 0, 0, 0) 4px
     ),
     var(--color-progress-extended-base);
-}
-
-.clan-progress__toggle {
-  padding: 0;
-  border: 0;
-  border-bottom: 2px solid currentColor;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.clan-progress__toggle:disabled {
-  border-bottom-style: dotted;
-  opacity: 0.9;
-  cursor: default;
-}
-
-.clan-progress__toggle--extended {
-  text-decoration: underline;
-  text-decoration-style: dashed;
-  text-underline-offset: 0.1rem;
-}
-
-.clan-progress__toggle:focus-visible {
-  outline: 2px solid var(--color-progress-extended);
-  outline-offset: 2px;
 }
 
 .app-chrome {

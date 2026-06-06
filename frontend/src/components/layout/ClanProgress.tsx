@@ -1,5 +1,4 @@
 import type { BoardSummary } from '../../lib/types/board';
-import { useState } from 'preact/hooks';
 
 interface ClanProgressProps {
   summary: BoardSummary | null;
@@ -7,7 +6,6 @@ interface ClanProgressProps {
 }
 
 export function ClanProgress({ summary, loading }: ClanProgressProps) {
-  const [showExtended, setShowExtended] = useState(true);
   const completed = summary?.completedCount ?? 0;
   const supposedlyCompleted = summary?.supposedlyCompletedCount ?? 0;
   const total = summary?.totalCount ?? 0;
@@ -18,11 +16,6 @@ export function ClanProgress({ summary, loading }: ClanProgressProps) {
   const extensionBarPercent = Math.max(0, (extendedRatio - completedRatio) * 100);
   const completedPercent = Math.round(completedRatio * 100);
   const extendedPercent = Math.round(extendedRatio * 100);
-  const displayedCount = showExtended ? extendedCompleted : completed;
-  const displayedPercent = showExtended ? extendedPercent : completedPercent;
-  const displayedLabel = showExtended
-    ? 'Completed plus supposedly completed'
-    : 'Completed';
   const hasExtendedProgress = supposedlyCompleted > 0;
 
   return (
@@ -39,10 +32,10 @@ export function ClanProgress({ summary, loading }: ClanProgressProps) {
             width: loading ? '0%' : `${extensionBarPercent}%`,
           }}
           role="progressbar"
-          aria-valuenow={displayedCount}
+          aria-valuenow={extendedCompleted}
           aria-valuemin={0}
           aria-valuemax={total}
-          aria-label={`${displayedLabel} progress`}
+          aria-label="Completed plus supposedly completed progress"
         />
       </div>
       <div class="clan-progress__outcrop" aria-live="polite">
@@ -51,33 +44,35 @@ export function ClanProgress({ summary, loading }: ClanProgressProps) {
         ) : (
           <>
             <span class="clan-progress__count">
-              <button
-                type="button"
-                class={`clan-progress__toggle ${
-                  showExtended ? 'clan-progress__toggle--extended' : 'clan-progress__toggle--base'
-                }`}
-                onClick={() => setShowExtended((previous) => !previous)}
-                aria-pressed={showExtended}
-                aria-label={`Toggle progress display. Currently showing ${displayedLabel.toLowerCase()}.`}
-                disabled={!hasExtendedProgress}
-              >
-                {displayedCount}
-              </button>{' '}
-              / {total}
-            </span>
-            <span class="clan-progress__percent">{displayedPercent}%</span>
-            {hasExtendedProgress ? (
-              <span class="clan-progress__legend" aria-hidden="true">
-                <span class="clan-progress__legend-item">
-                  <span class="clan-progress__legend-swatch clan-progress__legend-swatch--base" />
-                  Done
-                </span>
-                <span class="clan-progress__legend-item">
-                  <span class="clan-progress__legend-swatch clan-progress__legend-swatch--extended" />
-                  Supp.
-                </span>
+              {extendedCompleted} / {total}
+              <span class="clan-progress__percent">
+                {' '}
+                {extendedPercent}%
+                {hasExtendedProgress ? (
+                  <span class="clan-progress__percent-confirmed"> ({completedPercent}%)</span>
+                ) : null}
               </span>
-            ) : null}
+            </span>
+            <span class="clan-progress__breakdown">
+              <span class="clan-progress__breakdown-item">
+                <span class="clan-progress__swatch clan-progress__swatch--base" aria-hidden="true" />
+                {completed} done
+              </span>
+              {hasExtendedProgress ? (
+                <>
+                  <span class="clan-progress__breakdown-sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span class="clan-progress__breakdown-item">
+                    <span
+                      class="clan-progress__swatch clan-progress__swatch--extended"
+                      aria-hidden="true"
+                    />
+                    {supposedlyCompleted} supp.
+                  </span>
+                </>
+              ) : null}
+            </span>
           </>
         )}
       </div>
