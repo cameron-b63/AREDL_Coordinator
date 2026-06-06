@@ -109,7 +109,7 @@ export function FiltersPanel({
         </div>
       </div>
 
-      <div class="filters-panel__body">
+      <div class={`filters-panel__body${signedIn ? '' : ' filters-panel__body--signed-out'}`}>
         <section class="filters-panel__section">
           <h3 class="filters-panel__section-title">Progress</h3>
           <label class="filters-panel__option">

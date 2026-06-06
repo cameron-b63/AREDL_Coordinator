@@ -7,8 +7,11 @@ import type { User } from '../../lib/types/user';
 import { LevelCard } from './LevelCard';
 
 export const LEVEL_ROW_HEIGHT = 172;
+export const LEVEL_ROW_HEIGHT_STACKED = 280;
 export const LEVEL_ROW_GAP = 16;
 export const LEVEL_ROW_STRIDE = LEVEL_ROW_HEIGHT + LEVEL_ROW_GAP;
+export const LEVEL_ROW_STRIDE_STACKED = LEVEL_ROW_HEIGHT_STACKED + LEVEL_ROW_GAP;
+export const LEVEL_STACK_BREAKPOINT = 960;
 
 interface LevelListProps {
   levels: BoardLevel[];
@@ -18,6 +21,7 @@ interface LevelListProps {
   layoutKey: string;
   error: { message: string; retry: () => void } | null;
   onClaimChange: (result: ClaimMutationResponse) => void;
+  onUsernameSearch?: (username: string) => void;
 }
 
 export function LevelList({
@@ -28,16 +32,37 @@ export function LevelList({
   layoutKey,
   error,
   onClaimChange,
+  onUsernameSearch,
 }: LevelListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollTop, onScroll, resetScroll } = useScrollTop();
   const [viewportHeight, setViewportHeight] = useState(0);
+  const [stackedLayout, setStackedLayout] = useState(false);
+
+  const rowHeight = stackedLayout ? LEVEL_ROW_HEIGHT_STACKED : LEVEL_ROW_HEIGHT;
+  const rowGap = LEVEL_ROW_GAP;
+  const rowStride = stackedLayout ? LEVEL_ROW_STRIDE_STACKED : LEVEL_ROW_STRIDE;
 
   /** Identity of the visible list — claim updates keep the same ids/order. */
   const levelOrderKey = useMemo(
     () => levels.map((level) => level.id).join('\0'),
     [levels],
   );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(`(max-width: ${LEVEL_STACK_BREAKPOINT}px)`);
+
+    function updateStackedLayout() {
+      setStackedLayout(mediaQuery.matches);
+    }
+
+    updateStackedLayout();
+    mediaQuery.addEventListener('change', updateStackedLayout);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateStackedLayout);
+    };
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -64,7 +89,7 @@ export function LevelList({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
     resetScroll();
-  }, [levelOrderKey, resetScroll]);
+  }, [levelOrderKey, resetScroll, stackedLayout]);
 
   if (loading) {
     return (
@@ -95,8 +120,8 @@ export function LevelList({
 
   const virtualWindow = computeVirtualWindow(scrollTop, viewportHeight, {
     itemCount: levels.length,
-    itemHeight: LEVEL_ROW_HEIGHT,
-    gap: LEVEL_ROW_GAP,
+    itemHeight: rowHeight,
+    gap: rowGap,
     overscan: 3,
   });
 
@@ -107,8 +132,8 @@ export function LevelList({
       ref={scrollRef}
       class="level-list"
       style={{
-        '--level-row-height': `${LEVEL_ROW_HEIGHT}px`,
-        '--level-row-gap': `${LEVEL_ROW_GAP}px`,
+        '--level-row-height': `${rowHeight}px`,
+        '--level-row-gap': `${rowGap}px`,
       }}
       onScroll={onScroll}
     >
@@ -119,13 +144,14 @@ export function LevelList({
             <div
               key={level.id}
               class="level-list__item"
-              style={{ top: `${rowIndex * LEVEL_ROW_STRIDE}px` }}
+              style={{ top: `${rowIndex * rowStride}px` }}
             >
               <LevelCard
                 level={level}
                 user={user}
                 signedIn={signedIn}
                 onClaimChange={onClaimChange}
+                onUsernameSearch={onUsernameSearch}
               />
             </div>
           );

@@ -105,13 +105,13 @@
 }
 
 .level-card::before {
-  top: var(--space-3);
-  left: var(--space-3);
+  top: var(--space-2);
+  left: var(--space-2);
 }
 
 .level-card::after {
-  top: var(--space-3);
-  right: var(--space-3);
+  top: var(--space-2);
+  right: var(--space-2);
 }
 
 .level-card__admin-reset {
@@ -204,6 +204,8 @@
 }
 
 .level-card__name {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--color-text-on-dark);
@@ -259,8 +261,8 @@
 
 .external-link-icon {
   flex-shrink: 0;
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .level-card-actions {
@@ -342,12 +344,16 @@
   white-space: nowrap;
 }
 
+.assignee-bubble--has-avatar {
+  /* Avatar overhangs left by 0.875rem; offset so it clears the label. */
+  margin-left: 0.75rem;
+}
+
 .assignee-bubble {
   position: relative;
   display: inline-flex;
   align-items: center;
   height: var(--card-action-height);
-  margin-left: 0.75rem;
   max-width: min(100%, 14rem);
 }
 
@@ -364,6 +370,27 @@
   box-shadow: var(--shadow-panel-sm);
   box-sizing: border-box;
   color: var(--color-text-on-dark);
+}
+
+.assignee-bubble__pill--clickable {
+  margin: 0;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.1s ease,
+    color 0.1s ease,
+    background 0.1s ease;
+}
+
+.assignee-bubble__pill--clickable:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.assignee-bubble__pill--clickable:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .assignee-bubble--completed .assignee-bubble__pill {
@@ -459,7 +486,8 @@
   flex-shrink: 0;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  width: 100%;
 }
 
 .claim-menu--disabled {
@@ -481,6 +509,7 @@
   display: flex;
   align-items: end;
   gap: var(--space-3);
+  width: 100%;
 }
 
 .claim-menu__field {
@@ -514,7 +543,8 @@
 }
 
 .claim-menu__select {
-  min-width: 13rem;
+  width: 100%;
+  min-width: 0;
   padding: 0 var(--space-3);
   border: var(--border-width) solid var(--color-border);
   background: var(--color-surface-inset);
@@ -589,7 +619,7 @@
   line-height: 1.3;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .level-card {
     grid-template-columns: 1fr;
     align-items: stretch;

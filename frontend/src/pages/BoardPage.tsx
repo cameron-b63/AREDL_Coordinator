@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 import { AppLayout } from '../components/layout/AppLayout';
 import { ClanProgress } from '../components/layout/ClanProgress';
 import { ContentSplit } from '../components/layout/ContentSplit';
@@ -12,7 +12,8 @@ import { useFilters } from '../hooks/useFilters';
 import { useLevels } from '../hooks/useLevels';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
-import { filtersAreActive } from '../lib/types/filters';
+import { canPickRandomLevel, pickRandomLevel } from '../lib/randomLevel';
+import { filtersAreActive, formatUserSearchQuery } from '../lib/types/filters';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
 import { normalizeUserClaims, normalizeHardest, toActiveClaim } from '../lib/types/claimMutation';
 
@@ -48,6 +49,30 @@ export function BoardPage() {
   );
 
   const boardLevels = state.status === 'ready' ? state.levels : [];
+  const positionRange = useMemo(
+    () => ({
+      positionMin: filters.positionMin,
+      positionMax: filters.positionMax,
+    }),
+    [filters.positionMin, filters.positionMax],
+  );
+  const randomLevelDisabled =
+    state.status !== 'ready' ||
+    !canPickRandomLevel(boardLevels, user ?? null, positionRange);
+
+  const handleRandomLevelPick = useCallback(() => {
+    const level = pickRandomLevel(boardLevels, user ?? null, positionRange);
+    if (level) {
+      setQuery(level.name);
+    }
+  }, [boardLevels, positionRange, setQuery, user]);
+
+  const handleUsernameSearch = useCallback(
+    (username: string) => {
+      setQuery(formatUserSearchQuery(username));
+    },
+    [setQuery],
+  );
 
   const toggleStats = useCallback(() => {
     setStatsOpen((open) => {
@@ -91,6 +116,8 @@ export function BoardPage() {
         <Header
           searchQuery={query}
           onSearchChange={setQuery}
+          randomLevelDisabled={randomLevelDisabled}
+          onRandomLevelPick={handleRandomLevelPick}
           user={user}
           filtersOpen={filtersOpen}
           filtersActive={filtersAreActive(filters)}
@@ -128,6 +155,7 @@ export function BoardPage() {
             layoutKey={`${filtersOpen ? 'open' : 'closed'}-${statsOpen ? 'stats' : 'nostats'}-${user ? 'in' : 'out'}`}
             error={error}
             onClaimChange={handleClaimChange}
+            onUsernameSearch={handleUsernameSearch}
           />
         }
         statsPanel={

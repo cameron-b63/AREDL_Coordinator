@@ -19,6 +19,10 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
   return { mode: 'text', needle: trimmed.toLowerCase() };
 }
 
+export function formatUserSearchQuery(username: string): string {
+  return `@${username}`;
+}
+
 export function usernameMatches(
   completer: Completer | undefined,
   needle: string,

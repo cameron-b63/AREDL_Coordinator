@@ -43,6 +43,8 @@ export function AdminPortal() {
         <Header
           searchQuery=""
           onSearchChange={() => {}}
+          randomLevelDisabled
+          onRandomLevelPick={() => {}}
           user={user}
           filtersOpen={false}
           filtersActive={false}

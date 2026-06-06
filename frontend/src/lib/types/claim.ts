@@ -54,6 +54,10 @@ export function isClaimKind(kind: string): kind is ClaimKind {
   return kind in CLAIM_PRIORITY;
 }
 
+export function claimPriority(kind: ClaimKind): number {
+  return CLAIM_PRIORITY[kind];
+}
+
 export function canSetClaimKind(
   ownKind: ClaimKind | null,
   targetKind: ClaimKind,

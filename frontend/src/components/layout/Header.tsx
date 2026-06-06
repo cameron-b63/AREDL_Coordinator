@@ -3,12 +3,15 @@ import type { User } from '../../lib/types/user';
 import { SignInButton } from '../auth/SignInButton';
 import { UserBadge } from '../auth/UserBadge';
 import { FiltersButton } from '../ui/FiltersButton';
+import { RandomLevelButton } from '../ui/RandomLevelButton';
 import { SearchBar } from '../ui/SearchBar';
 import { StatsMenuButton } from '../ui/StatsMenuButton';
 
 interface HeaderProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  randomLevelDisabled: boolean;
+  onRandomLevelPick: () => void;
   user: User | null | undefined;
   filtersOpen: boolean;
   filtersActive: boolean;
@@ -26,6 +29,8 @@ function adminPath(): string {
 export function Header({
   searchQuery,
   onSearchChange,
+  randomLevelDisabled,
+  onRandomLevelPick,
   user,
   filtersOpen,
   filtersActive,
@@ -41,16 +46,16 @@ export function Header({
       <div class="header__edge header__edge--start">
         {showStats ? (
           <StatsMenuButton active={statsOpen} onClick={onToggleStats} />
+        ) : !adminPage ? (
+          <span class="header__stats-spacer" aria-hidden="true" />
         ) : null}
       </div>
-      <div class="header__center">
+      <div class={`header__center${adminPage ? ' header__center--admin' : ''}`}>
         <h1 class="header__brand">
           <img
             class="header__guild-icon"
             src={DISCORD_GUILD_ICON_URL}
             alt=""
-            width={44}
-            height={44}
           />
           <span class="header__brand-text">
             <span class="header__nsh">NSH</span>
@@ -59,7 +64,13 @@ export function Header({
         </h1>
         {!adminPage ? (
           <>
-            <SearchBar value={searchQuery} onInput={onSearchChange} />
+            <div class="header__search-group">
+              <SearchBar value={searchQuery} onInput={onSearchChange} />
+              <RandomLevelButton
+                disabled={randomLevelDisabled}
+                onPick={onRandomLevelPick}
+              />
+            </div>
             <FiltersButton
               active={filtersOpen || filtersActive}
               onClick={onToggleFilters}

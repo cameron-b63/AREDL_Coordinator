@@ -20,9 +20,16 @@ interface LevelCardProps {
   user: User | null;
   signedIn: boolean;
   onClaimChange: (result: ClaimMutationResponse) => void;
+  onUsernameSearch?: (username: string) => void;
 }
 
-export function LevelCard({ level, user, signedIn, onClaimChange }: LevelCardProps) {
+export function LevelCard({
+  level,
+  user,
+  signedIn,
+  onClaimChange,
+  onUsernameSearch,
+}: LevelCardProps) {
   const completed = levelIsCompleted(level);
   const activeClaim = level.claim.active;
   const [copied, setCopied] = useState(false);
@@ -114,6 +121,7 @@ export function LevelCard({ level, user, signedIn, onClaimChange }: LevelCardPro
           completed={showCompletedStyle}
           strengthClass={strengthClass}
           showAvatar={completed || activeClaim !== null || username === 'Nobody Yet'}
+          onUsernameSearch={onUsernameSearch}
         />
       </div>
       <div class="level-card__aside">
