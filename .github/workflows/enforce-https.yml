@@ -30,8 +30,10 @@ jobs:
         run: bash scripts/enforce-https-github.sh
 
       - name: Upgrade Cloudflare SSL to Full (strict)
+        if: success()
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        continue-on-error: true
         run: |
           DOMAIN="nshbeatsthearedl.christmas"
           ZONE_ID="$(curl -sS "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN}" \

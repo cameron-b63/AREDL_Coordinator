@@ -17,46 +17,46 @@ cf_api() {
     "$@"
 }
 
-require_success() {
+try_patch_setting() {
   local label="$1"
-  local response="$2"
-  if ! echo "$response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
-    echo "Cloudflare API failed: ${label}" >&2
-    echo "$response" | python3 -m json.tool >&2 || echo "$response" >&2
-    exit 1
+  local setting="$2"
+  local value="$3"
+  local response
+  response="$(cf_api PATCH "/zones/${ZONE_ID}/settings/${setting}" -d "{\"value\":\"${value}\"}")"
+  if echo "$response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
+    echo "Configured ${label}."
+    return 0
   fi
+  echo "Warning: unable to configure ${label} (token may lack Zone Settings Edit)." >&2
+  echo "$response" | python3 -m json.tool >&2 || echo "$response" >&2
+  return 1
 }
 
 echo "Looking up zone for ${DOMAIN}..."
 zone_response="$(cf_api GET "/zones?name=${DOMAIN}")"
-require_success "zone lookup" "$zone_response"
-ZONE_ID="$(echo "$zone_response" | python3 -c "import sys, json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')")"
-if [[ -z "$ZONE_ID" ]]; then
-  echo "Zone not found for ${DOMAIN}" >&2
+if ! echo "$zone_response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') and d.get('result') else 1)"; then
+  echo "Cloudflare zone lookup failed." >&2
+  echo "$zone_response" | python3 -m json.tool >&2 || echo "$zone_response" >&2
   exit 1
 fi
+ZONE_ID="$(echo "$zone_response" | python3 -c "import sys, json; print(json.load(sys.stdin)['result'][0]['id'])")"
 echo "Zone ID: ${ZONE_ID}"
 
-echo "Setting SSL/TLS mode to Full..."
-ssl_response="$(cf_api PATCH "/zones/${ZONE_ID}/settings/ssl" -d '{"value":"full"}')"
-require_success "ssl=full" "$ssl_response"
-
-echo "Enabling Always Use HTTPS..."
-auh_response="$(cf_api PATCH "/zones/${ZONE_ID}/settings/always_use_https" -d '{"value":"on"}')"
-require_success "always_use_https" "$auh_response"
-
-echo "Enabling Automatic HTTPS Rewrites..."
-ahr_response="$(cf_api PATCH "/zones/${ZONE_ID}/settings/automatic_https_rewrites" -d '{"value":"on"}')"
-require_success "automatic_https_rewrites" "$ahr_response"
-
-echo "Setting minimum TLS version to 1.2..."
-tls_response="$(cf_api PATCH "/zones/${ZONE_ID}/settings/min_tls_version" -d '{"value":"1.2"}')"
-require_success "min_tls_version" "$tls_response"
+SETTINGS_OK=true
+try_patch_setting "SSL/TLS mode (Full)" "ssl" "full" || SETTINGS_OK=false
+try_patch_setting "Always Use HTTPS" "always_use_https" "on" || SETTINGS_OK=false
+try_patch_setting "Automatic HTTPS Rewrites" "automatic_https_rewrites" "on" || SETTINGS_OK=false
+try_patch_setting "Minimum TLS version (1.2)" "min_tls_version" "1.2" || SETTINGS_OK=false
 
 echo "Fetching DNS records..."
 records_response="$(cf_api GET "/zones/${ZONE_ID}/dns_records?per_page=100")"
-require_success "dns list" "$records_response"
+if ! echo "$records_response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
+  echo "Cloudflare DNS list failed." >&2
+  echo "$records_response" | python3 -m json.tool >&2 || echo "$records_response" >&2
+  exit 1
+fi
 
+PROXY_OK=true
 while IFS=$'\t' read -r record_id record_type record_name content proxied; do
   if [[ "$proxied" == "true" ]]; then
     echo "Already proxied: ${record_type} ${record_name} -> ${content}"
@@ -76,7 +76,11 @@ print(json.dumps({
 PY
 )"
   patch_response="$(cf_api PUT "/zones/${ZONE_ID}/dns_records/${record_id}" -d "$patch_payload")"
-  require_success "proxy ${record_name}" "$patch_response"
+  if ! echo "$patch_response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
+    echo "Failed to proxy ${record_name}." >&2
+    echo "$patch_response" | python3 -m json.tool >&2 || echo "$patch_response" >&2
+    PROXY_OK=false
+  fi
 done < <(echo "$records_response" | python3 - <<'PY'
 import json, sys
 data = json.load(sys.stdin)
@@ -93,5 +97,14 @@ for record in data["result"]:
     ]))
 PY
 )
+
+if [[ "$PROXY_OK" != true ]]; then
+  echo "Cloudflare DNS proxy update failed (token may lack DNS Edit)." >&2
+  exit 1
+fi
+
+if [[ "$SETTINGS_OK" != true ]]; then
+  echo "Warning: zone settings were not fully applied. Update CLOUDFLARE_API_TOKEN with Zone Settings Edit for ${DOMAIN}." >&2
+fi
 
 echo "Cloudflare HTTPS configuration complete."

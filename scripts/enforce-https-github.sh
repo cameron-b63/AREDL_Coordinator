@@ -7,10 +7,18 @@ DOMAIN="nshbeatsthearedl.christmas"
 MAX_WAIT_SECS="${MAX_WAIT_SECS:-900}"
 POLL_INTERVAL="${POLL_INTERVAL:-30}"
 
-: "${GH_TOKEN:?GH_TOKEN is required}"
+: "${GH_TOKEN:=}"
+if [[ -z "$GH_TOKEN" ]] && ! gh auth status >/dev/null 2>&1; then
+  echo "GH_TOKEN is required when gh is not authenticated" >&2
+  exit 1
+fi
 
 gh_api() {
-  gh api "$@"
+  if [[ -n "$GH_TOKEN" ]]; then
+    GH_TOKEN="$GH_TOKEN" gh api "$@"
+  else
+    gh api "$@"
+  fi
 }
 
 wait_for_https() {
