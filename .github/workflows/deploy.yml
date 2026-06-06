@@ -77,6 +77,12 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
+      - name: Smoke test Worker API
+        run: |
+          BASE="https://aredl-coordinator.cameron-bond63.workers.dev"
+          curl -fsS "$BASE/api/health" | grep -q '"service":"aredl-coordinator"'
+          curl -fsSI -X GET "$BASE/auth/discord" | grep -qi '^location: https://discord.com/oauth2/authorize'
+
   deploy-frontend:
     runs-on: ubuntu-latest
     permissions:

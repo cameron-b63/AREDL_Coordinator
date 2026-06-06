@@ -43,6 +43,15 @@ export function levelMatchesUserSearch(level: BoardLevel, needle: string): boole
   return usernameMatches(level.claim.active?.claimedBy, needle);
 }
 
+export function levelMatchesTextSearch(level: BoardLevel, needle: string): boolean {
+  const idStr = String(level.gameLevelId);
+  if (needle === idStr || idStr.startsWith(needle)) {
+    return true;
+  }
+  const haystack = `#${level.position} ${level.name}`.toLowerCase();
+  return haystack.includes(needle);
+}
+
 export interface LevelFilters {
   excludeCompleted: boolean;
   excludeNewHardests: boolean;
@@ -137,11 +146,8 @@ export function applyLevelFilters(
         if (!levelMatchesUserSearch(level, needle)) {
           return false;
         }
-      } else {
-        const haystack = `#${level.position} ${level.name}`.toLowerCase();
-        if (!haystack.includes(needle)) {
-          return false;
-        }
+      } else if (!levelMatchesTextSearch(level, needle)) {
+        return false;
       }
     }
 

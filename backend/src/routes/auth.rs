@@ -34,15 +34,19 @@ pub async fn discord_callback(req: Request, ctx: RouteContext<()>) -> Result<Res
         return auth_error_redirect(&ctx.env, "discord authorization denied");
     }
 
-    let code = query
-        .code
-        .ok_or_else(|| "missing oauth code".to_string())?;
-    let state = query
-        .state
-        .ok_or_else(|| "missing oauth state".to_string())?;
+    let Some(code) = query.code else {
+        return auth_error_redirect(&ctx.env, "missing oauth code");
+    };
+    let Some(state) = query.state else {
+        return auth_error_redirect(&ctx.env, "missing oauth state");
+    };
 
-    let stored_state = oauth_state_from_request(&req)
-        .ok_or_else(|| "missing oauth state cookie".to_string())?;
+    let Some(stored_state) = oauth_state_from_request(&req) else {
+        return auth_error_redirect(
+            &ctx.env,
+            "Sign-in session expired. Try again in the same browser without blocking cookies.",
+        );
+    };
     if stored_state != state {
         return auth_error_redirect(&ctx.env, "invalid oauth state");
     }

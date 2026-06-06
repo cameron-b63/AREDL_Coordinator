@@ -63,7 +63,7 @@ export function BoardPage() {
   const handleRandomLevelPick = useCallback(() => {
     const level = pickRandomLevel(boardLevels, user ?? null, positionRange);
     if (level) {
-      setQuery(level.name);
+      setQuery(String(level.gameLevelId));
     }
   }, [boardLevels, positionRange, setQuery, user]);
 
