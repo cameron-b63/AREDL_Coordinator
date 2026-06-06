@@ -24,9 +24,9 @@ echo "Checking Workers Builds triggers for ${WORKER_NAME}..."
 response="$(cf_api GET "/accounts/${CLOUDFLARE_ACCOUNT_ID}/builds/workers/${WORKER_NAME}/triggers")"
 
 if ! echo "$response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
-  echo "Workers Builds trigger lookup failed (token may lack Builds permissions)." >&2
+  echo "Workers Builds trigger lookup failed (token may lack Builds permissions); skipping." >&2
   echo "$response" | python3 -m json.tool >&2 || echo "$response" >&2
-  exit 1
+  exit 0
 fi
 
 trigger_count="$(echo "$response" | python3 -c "import sys, json; print(len(json.load(sys.stdin).get('result') or []))")"

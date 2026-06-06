@@ -84,6 +84,9 @@ jobs:
         run: bash ../scripts/disable-workers-builds.sh
 
       - name: Smoke test Worker API
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           BASE="https://aredl-coordinator.cameron-bond63.workers.dev"
