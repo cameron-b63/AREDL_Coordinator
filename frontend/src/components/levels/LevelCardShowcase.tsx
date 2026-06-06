@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { VideoIcon } from '../ui/VideoIcon';
-import { ApiError, fetchShowcaseVideo } from '../../lib/api';
+import { ApiError, fetchShowcaseVideo, getCachedShowcaseUrl } from '../../lib/api';
 import type { BoardLevel } from '../../lib/types/board';
 
 interface LevelCardShowcaseProps {
@@ -9,17 +9,16 @@ interface LevelCardShowcaseProps {
 
 export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
   const [loading, setLoading] = useState(false);
-  const [cachedUrl, setCachedUrl] = useState<string | null>(null);
+  const [cachedUrl, setCachedUrl] = useState(
+    () => getCachedShowcaseUrl(level.id) ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   async function openShowcase(event: Event) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (cachedUrl) {
-      window.open(cachedUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
+    const tab = window.open('about:blank', '_blank', 'noopener,noreferrer');
 
     setLoading(true);
     setError(null);
@@ -27,8 +26,10 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
     try {
       const { videoUrl } = await fetchShowcaseVideo(level.id);
       setCachedUrl(videoUrl);
-      window.open(videoUrl, '_blank', 'noopener,noreferrer');
+      if (tab) tab.location.href = videoUrl;
+      else window.location.assign(videoUrl);
     } catch (err) {
+      tab?.close();
       const message =
         err instanceof ApiError && err.status === 404
           ? 'No showcase video'

@@ -91,8 +91,21 @@ export interface ShowcaseVideoResponse {
   videoUrl: string;
 }
 
-export function fetchShowcaseVideo(levelId: string) {
-  return apiFetch<ShowcaseVideoResponse>(`/api/levels/${encodeURIComponent(levelId)}/showcase`);
+const showcaseUrlCache = new Map<string, string>();
+
+export function getCachedShowcaseUrl(levelId: string): string | undefined {
+  return showcaseUrlCache.get(levelId);
+}
+
+export async function fetchShowcaseVideo(levelId: string) {
+  const cached = showcaseUrlCache.get(levelId);
+  if (cached) return { videoUrl: cached };
+
+  const result = await apiFetch<ShowcaseVideoResponse>(
+    `/api/levels/${encodeURIComponent(levelId)}/showcase`,
+  );
+  showcaseUrlCache.set(levelId, result.videoUrl);
+  return result;
 }
 
 function normalizeMeUser(user: NonNullable<MeResponse['user']>): User {
