@@ -45,7 +45,7 @@ pub async fn admin_reset_claim(req: Request, ctx: RouteContext<()>) -> Result<Re
     delete_all_claims_for_level(&ctx.env, &level_id).await?;
     invalidate_board_cache(&ctx.env).await?;
 
-    let body = build_claim_mutation_response(&ctx.env, &user.id, &level_id).await?;
+    let body = build_claim_mutation_response(&ctx.env, &user.id, &level_id, None).await?;
     Response::from_json(&body)
 }
 

@@ -148,8 +148,8 @@ export function FiltersPanel({
             </p>
           ) : (
             <p class="filters-panel__hint">
-              Set your hardest in <a href={settingsPath()}>Settings</a> or complete a level on
-              AREDL.
+              Set your hardest in <a href={settingsPath()}>Settings</a>, mark a level{' '}
+              <strong>Supposedly Completed</strong>, or complete a level on AREDL.
             </p>
           )}
         </section>

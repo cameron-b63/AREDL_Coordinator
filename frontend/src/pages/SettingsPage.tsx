@@ -131,7 +131,8 @@ export function SettingsPage() {
             <h2 class="settings-page__section-title">Hardest level</h2>
             <p class="settings-page__hint">
               Used by <strong>Exclude New Hardests</strong> when your AREDL profile is missing or
-              out of date.
+              out of date. Marking a harder level as <strong>Supposedly Completed</strong> updates
+              this automatically.
             </p>
 
             <dl class="settings-page__stats">

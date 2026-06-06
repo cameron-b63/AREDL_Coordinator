@@ -2,8 +2,13 @@ use crate::auth::{resolve_session_user, AuthError};
 use crate::aredl::level_has_clan_completion;
 use crate::board::invalidate_board_cache;
 use crate::claims::{
-    build_claim_mutation_response, can_clobber_dominant, delete_user_claim_for_level, insert_claim,
-    is_valid_priority, list_claims_for_level, select_dominant_claim, update_user_claim,
+    build_claim_mutation_response, can_clobber_dominant, delete_user_claim_for_level,
+    get_user_claim_for_level, insert_claim, is_valid_priority, list_claims_for_level,
+    select_dominant_claim, update_user_claim,
+};
+use crate::preferences::{
+    maybe_promote_manual_hardest, maybe_revert_manual_hardest_after_sc_removal,
+    HardestMutationUpdate,
 };
 use serde::Deserialize;
 use serde::Serialize;
@@ -62,11 +67,14 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
         .iter()
         .find(|claim| claim.user_id == user.id);
 
+    let mut was_supposedly_completed = false;
+
     if let Some(own_claim) = own {
         if own_claim.kind == body.kind {
-            return mutation_response(&ctx.env, &user.id, &body.level_id).await;
+            return mutation_response(&ctx.env, &user.id, &body.level_id, None).await;
         }
 
+        was_supposedly_completed = own_claim.kind == "supposedly_completed";
         update_user_claim(&ctx.env, &user.id, &body.level_id, &body.kind).await?;
     } else if let Some(dominant_claim) = dominant {
         if !can_clobber_dominant(&dominant_claim.kind, &body.kind) {
@@ -81,8 +89,28 @@ pub async fn submit_claim(mut req: Request, ctx: RouteContext<()>) -> Result<Res
         insert_claim(&ctx.env, &user.id, &body.level_id, &body.kind).await?;
     }
 
+    let hardest_update = if body.kind == "supposedly_completed" {
+        maybe_promote_manual_hardest(&ctx.env, &user.id, &user.discord_id, &body.level_id).await?
+    } else if was_supposedly_completed {
+        maybe_revert_manual_hardest_after_sc_removal(
+            &ctx.env,
+            &user.id,
+            &user.discord_id,
+            &body.level_id,
+        )
+        .await?
+    } else {
+        None
+    };
+
     invalidate_board_cache(&ctx.env).await?;
-    mutation_response(&ctx.env, &user.id, &body.level_id).await
+    mutation_response(
+        &ctx.env,
+        &user.id,
+        &body.level_id,
+        hardest_update,
+    )
+    .await
 }
 
 pub async fn remove_claim(req: Request, ctx: RouteContext<()>) -> Result<Response> {
@@ -93,13 +121,36 @@ pub async fn remove_claim(req: Request, ctx: RouteContext<()>) -> Result<Respons
     };
 
     let level_id = path_param(&req, "/api/claims/")?;
+    let own_claim = get_user_claim_for_level(&ctx.env, &user.id, &level_id).await?;
+    let was_supposedly_completed = own_claim
+        .as_ref()
+        .is_some_and(|claim| claim.kind == "supposedly_completed");
+
     delete_user_claim_for_level(&ctx.env, &user.id, &level_id).await?;
+
+    let hardest_update = if was_supposedly_completed {
+        maybe_revert_manual_hardest_after_sc_removal(
+            &ctx.env,
+            &user.id,
+            &user.discord_id,
+            &level_id,
+        )
+        .await?
+    } else {
+        None
+    };
+
     invalidate_board_cache(&ctx.env).await?;
-    mutation_response(&ctx.env, &user.id, &level_id).await
+    mutation_response(&ctx.env, &user.id, &level_id, hardest_update).await
 }
 
-async fn mutation_response(env: &worker::Env, user_id: &str, level_id: &str) -> Result<Response> {
-    let body = build_claim_mutation_response(env, user_id, level_id).await?;
+async fn mutation_response(
+    env: &worker::Env,
+    user_id: &str,
+    level_id: &str,
+    hardest_update: Option<HardestMutationUpdate>,
+) -> Result<Response> {
+    let body = build_claim_mutation_response(env, user_id, level_id, hardest_update).await?;
     Response::from_json(&body)
 }
 

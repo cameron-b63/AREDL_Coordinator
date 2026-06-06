@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { fetchMe } from '../lib/api';
 import { consumeSessionFromUrl } from '../lib/session';
-import type { User, UserClaim } from '../lib/types/user';
+import type { User, UserClaim, UserHardest } from '../lib/types/user';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -23,6 +23,22 @@ export function useAuth() {
       return { ...current, claims };
     });
   }, []);
+
+  const patchHardest = useCallback(
+    (update: { hardest?: UserHardest | null; manualHardest?: UserHardest | null }) => {
+      setUser((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          ...(update.hardest !== undefined ? { hardest: update.hardest } : {}),
+          ...(update.manualHardest !== undefined
+            ? { manualHardest: update.manualHardest }
+            : {}),
+        };
+      });
+    },
+    [],
+  );
 
   const setUserProfile = useCallback((next: User) => {
     setUser(next);
@@ -48,5 +64,5 @@ export function useAuth() {
     };
   }, []);
 
-  return { user, loading: user === undefined, refresh, setClaims, setUser: setUserProfile };
+  return { user, loading: user === undefined, refresh, setClaims, patchHardest, setUser: setUserProfile };
 }

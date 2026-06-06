@@ -1,11 +1,23 @@
 import type { ActiveClaim } from './board';
 import type { ClaimKind } from './claim';
-import type { UserClaim } from './user';
+import type { UserClaim, UserHardest } from './user';
 
 export interface ClaimMutationResponse {
   levelId: string;
   claims: UserClaim[];
   levelActive: ActiveClaim | null;
+  hardest?: UserHardest | null;
+  manualHardest?: UserHardest | null;
+}
+
+export function normalizeHardest(
+  hardest: { position: number; levelName: string } | null | undefined,
+): UserHardest | null {
+  if (!hardest) return null;
+  return {
+    position: hardest.position,
+    levelName: hardest.levelName,
+  };
 }
 
 export function toActiveClaim(

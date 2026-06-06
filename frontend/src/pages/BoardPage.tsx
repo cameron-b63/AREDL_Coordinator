@@ -14,12 +14,12 @@ import { useUserPreferences } from '../hooks/useUserPreferences';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
 import { filtersAreActive } from '../lib/types/filters';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
-import { normalizeUserClaims, toActiveClaim } from '../lib/types/claimMutation';
+import { normalizeUserClaims, normalizeHardest, toActiveClaim } from '../lib/types/claimMutation';
 
 export function BoardPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
-  const { user, setClaims } = useAuth();
+  const { user, setClaims, patchHardest } = useAuth();
 
   useEffect(() => {
     const message = consumeAuthErrorFromUrl();
@@ -69,8 +69,17 @@ export function BoardPage() {
     (result: ClaimMutationResponse) => {
       setClaims(normalizeUserClaims(result.claims));
       patchLevelClaim(result.levelId, toActiveClaim(result.levelActive));
+      if (result.hardest !== undefined) {
+        patchHardest({
+          hardest: normalizeHardest(result.hardest),
+          manualHardest:
+            result.manualHardest !== undefined
+              ? normalizeHardest(result.manualHardest)
+              : null,
+        });
+      }
     },
-    [patchLevelClaim, setClaims],
+    [patchHardest, patchLevelClaim, setClaims],
   );
 
   const loading = state.status === 'loading';
