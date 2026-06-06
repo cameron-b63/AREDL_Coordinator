@@ -1,2 +1,2 @@
 User-agent: *
-Disallow: /AREDL_Coordinator/admin
+Disallow: /admin
