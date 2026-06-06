@@ -1,8 +1,43 @@
 import { isClaimKind, type ClaimKind } from './claim';
-import type { BoardLevel } from './board';
+import type { BoardLevel, Completer } from './board';
 import type { User } from './user';
 import { levelIsCompleted } from './board';
 import { userHasClaimOnLevel } from './user';
+
+export type SearchQueryMode = 'text' | 'user';
+
+export interface ParsedSearchQuery {
+  mode: SearchQueryMode;
+  needle: string;
+}
+
+export function parseSearchQuery(query: string): ParsedSearchQuery {
+  const trimmed = query.trim();
+  if (trimmed.startsWith('@')) {
+    return { mode: 'user', needle: trimmed.slice(1).trim().toLowerCase() };
+  }
+  return { mode: 'text', needle: trimmed.toLowerCase() };
+}
+
+export function usernameMatches(
+  completer: Completer | undefined,
+  needle: string,
+): boolean {
+  if (!completer || !needle) {
+    return false;
+  }
+  return completer.username.toLowerCase().startsWith(needle);
+}
+
+export function levelMatchesUserSearch(level: BoardLevel, needle: string): boolean {
+  if (!needle) {
+    return false;
+  }
+  if (levelIsCompleted(level)) {
+    return usernameMatches(level.completion.by, needle);
+  }
+  return usernameMatches(level.claim.active?.claimedBy, needle);
+}
 
 export interface LevelFilters {
   excludeCompleted: boolean;
@@ -45,7 +80,7 @@ export function applyLevelFilters(
   user: User | null,
   searchQuery: string,
 ): BoardLevel[] {
-  const trimmed = searchQuery.trim().toLowerCase();
+  const { mode, needle } = parseSearchQuery(searchQuery);
   const hardestPosition = user?.hardest?.position ?? null;
 
   return levels.filter((level) => {
@@ -93,10 +128,16 @@ export function applyLevelFilters(
       return false;
     }
 
-    if (trimmed) {
-      const haystack = `#${level.position} ${level.name}`.toLowerCase();
-      if (!haystack.includes(trimmed)) {
-        return false;
+    if (needle) {
+      if (mode === 'user') {
+        if (!levelMatchesUserSearch(level, needle)) {
+          return false;
+        }
+      } else {
+        const haystack = `#${level.position} ${level.name}`.toLowerCase();
+        if (!haystack.includes(needle)) {
+          return false;
+        }
       }
     }
 

@@ -15,7 +15,7 @@ export function SearchBar({ value, onInput }: SearchBarProps) {
       <input
         class="search-bar__input"
         type="search"
-        placeholder="Search levels by name or rank…"
+        placeholder="Search by name, rank, or @username…"
         value={value}
         onInput={(event) => onInput((event.currentTarget as HTMLInputElement).value)}
       />

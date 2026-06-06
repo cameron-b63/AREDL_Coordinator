@@ -7,7 +7,7 @@ interface ClanProgressProps {
 }
 
 export function ClanProgress({ summary, loading }: ClanProgressProps) {
-  const [showExtended, setShowExtended] = useState(false);
+  const [showExtended, setShowExtended] = useState(true);
   const completed = summary?.completedCount ?? 0;
   const supposedlyCompleted = summary?.supposedlyCompletedCount ?? 0;
   const total = summary?.totalCount ?? 0;

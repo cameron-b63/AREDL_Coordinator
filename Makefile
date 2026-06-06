@@ -7,10 +7,25 @@ WASM_TARGET  := wasm32-unknown-unknown
 NPM := npm
 CARGO := cargo
 
+# Wrangler 4 requires Node 22+. Load nvm and .nvmrc when available.
+define RUN_WITH_NODE
+bash -lc '\
+	export NVM_DIR="$$HOME/.nvm"; \
+	[ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh"; \
+	[ -f .nvmrc ] && nvm use >/dev/null 2>&1; \
+	major=$$(node -p "process.versions.node.split(\".\")[0]"); \
+	if [ "$$major" -lt 22 ]; then \
+		echo "Node.js 22+ required for Wrangler (current: $$(node -v))."; \
+		echo "Install and select it: nvm install 22 && nvm use 22"; \
+		exit 1; \
+	fi; \
+	$(1)'
+endef
+
 .PHONY: help install setup-rust \
         dev dev-backend dev-frontend \
         build build-backend build-frontend check \
-        migrate-local migrate-remote sync-secrets \
+        migrate-local migrate-remote seed-local-db sync-secrets \
         deploy deploy-backend deploy-frontend deploy-ci \
         preview-frontend clean
 
@@ -29,12 +44,13 @@ setup-rust: ## Install worker-build for local deploys (Wrangler dev runs it auto
 	cargo install worker-build --locked --version 0.8.3
 
 dev: ## Run backend and frontend dev servers in parallel
+	@$(MAKE) migrate-local
 	@echo "Backend: http://localhost:8787"
 	@echo "Frontend: http://localhost:5173"
 	@$(MAKE) -j2 dev-backend dev-frontend
 
 dev-backend: ## Run Wrangler dev server (port 8787)
-	$(NPM) run dev --prefix $(BACKEND_DIR)
+	$(call RUN_WITH_NODE,$(NPM) run dev --prefix $(BACKEND_DIR))
 
 dev-frontend: ## Run Vite dev server (port 5173)
 	$(NPM) run dev --prefix $(FRONTEND_DIR)
@@ -50,21 +66,21 @@ build-frontend: ## Build frontend for production
 check: build ## Alias for build (compile/typecheck everything)
 
 migrate-local: ## Apply D1 migrations to local dev database
-	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --local -c wrangler.toml
+	$(call RUN_WITH_NODE,cd $(BACKEND_DIR) && npx wrangler d1 migrations apply DB --local -c wrangler.toml)
 
 migrate-remote: ## Apply D1 migrations to production database
-	$(NPM) exec --prefix $(BACKEND_DIR) wrangler d1 migrations apply DB --remote -c wrangler.toml
+	$(call RUN_WITH_NODE,cd $(BACKEND_DIR) && npx wrangler d1 migrations apply DB --remote -c wrangler.toml)
+
+seed-local-db: migrate-local ## Copy production D1 data into local dev (requires wrangler login)
+	$(call RUN_WITH_NODE,cd $(BACKEND_DIR) && npx wrangler d1 export DB --remote --output=.local-db-seed.sql -c wrangler.toml && npx wrangler d1 execute DB --local --file=.local-db-seed.sql -c wrangler.toml)
 
 sync-secrets: ## Upload OAuth/JWT secrets from backend/.dev.vars to Cloudflare
 	@test -f $(BACKEND_DIR)/.dev.vars || (echo "Missing $(BACKEND_DIR)/.dev.vars — copy from .dev.vars.example" && exit 1)
-	@DISCORD_CLIENT_ID=$$(grep '^DISCORD_CLIENT_ID=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
-	DISCORD_CLIENT_SECRET=$$(grep '^DISCORD_CLIENT_SECRET=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
-	DISCORD_BOT_TOKEN=$$(grep '^DISCORD_BOT_TOKEN=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
-	JWT_SECRET=$$(grep '^JWT_SECRET=' $(BACKEND_DIR)/.dev.vars | cut -d= -f2-) && \
-	printf '%s' "$$DISCORD_CLIENT_ID" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_CLIENT_ID -c $(BACKEND_DIR)/wrangler.toml && \
-	printf '%s' "$$DISCORD_CLIENT_SECRET" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_CLIENT_SECRET -c $(BACKEND_DIR)/wrangler.toml && \
-	printf '%s' "$$DISCORD_BOT_TOKEN" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put DISCORD_BOT_TOKEN -c $(BACKEND_DIR)/wrangler.toml && \
-	printf '%s' "$$JWT_SECRET" | $(NPM) exec --prefix $(BACKEND_DIR) wrangler secret put JWT_SECRET -c $(BACKEND_DIR)/wrangler.toml
+	$(call RUN_WITH_NODE,set -a && . $(BACKEND_DIR)/.dev.vars && set +a && cd $(BACKEND_DIR) && \
+		printf '%s' "$$DISCORD_CLIENT_ID" | npx wrangler secret put DISCORD_CLIENT_ID -c wrangler.toml && \
+		printf '%s' "$$DISCORD_CLIENT_SECRET" | npx wrangler secret put DISCORD_CLIENT_SECRET -c wrangler.toml && \
+		printf '%s' "$$DISCORD_BOT_TOKEN" | npx wrangler secret put DISCORD_BOT_TOKEN -c wrangler.toml && \
+		printf '%s' "$$JWT_SECRET" | npx wrangler secret put JWT_SECRET -c wrangler.toml)
 
 deploy-backend: migrate-remote ## Deploy Worker to Cloudflare
 	$(NPM) run deploy --prefix $(BACKEND_DIR)

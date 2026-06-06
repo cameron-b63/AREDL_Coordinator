@@ -108,8 +108,10 @@ Requires Node.js 22+. For manual deploys, also run `make setup-rust` once to ins
 
 ```bash
 make install   # first time
-make dev       # backend on :8787, frontend on :5173
+make dev       # applies local D1 migrations, then backend on :8787 and frontend on :5173
 ```
+
+Local D1 is separate from production and starts without claims. To mirror production claim data for progress/filters, run `make seed-local-db` once (requires `wrangler login`).
 
 Or run individually: `make dev-backend`, `make dev-frontend`.
 

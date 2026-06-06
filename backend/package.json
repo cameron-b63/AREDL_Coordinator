@@ -1,6 +1,9 @@
 {
   "name": "aredl-coordinator-backend",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "wrangler dev -c wrangler.toml",
     "deploy": "wrangler deploy -c wrangler.toml"
