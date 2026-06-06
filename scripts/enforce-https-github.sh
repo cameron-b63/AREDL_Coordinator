@@ -58,7 +58,7 @@ fi
 
 echo "Enabling GitHub Pages Enforce HTTPS..."
 gh_api -X PUT "repos/${REPO}/pages" \
-  -f https_enforced=true \
+  -F https_enforced=true \
   -f cname="${DOMAIN}" \
   -f build_type=legacy
 

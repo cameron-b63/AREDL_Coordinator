@@ -53,7 +53,7 @@ backend/    Rust Worker + D1 migrations
 
 1. Push this repository to GitHub (public repo for free Pages).
 2. Add repository secrets:
-   - `CLOUDFLARE_API_TOKEN` — Cloudflare dashboard → My Profile → API Tokens. Use the "Edit Cloudflare Workers" template for deploys, and add **Zone → DNS Edit** plus **Zone → Zone Settings Edit** for the custom domain (required by the Enforce HTTPS workflow).
+   - `CLOUDFLARE_API_TOKEN` — Cloudflare dashboard → My Profile → API Tokens. Create a custom token with **Zone → DNS Edit**, **Zone → Zone Settings Edit**, **Zone → Zone Read**, plus the Workers/D1 permissions from the "Edit Cloudflare Workers" template. A prefilled creation link is in [scripts/setup-cloudflare-zone-token.sh](scripts/setup-cloudflare-zone-token.sh).
    - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard sidebar
    - `DISCORD_CLIENT_ID` — same value as production Discord OAuth (see §4)
    - `DISCORD_CLIENT_SECRET` — same value as production Discord OAuth (see §4)
