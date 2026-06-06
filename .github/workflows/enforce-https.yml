@@ -13,27 +13,31 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Configure Cloudflare HTTPS
+        continue-on-error: true
+        id: cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bash scripts/enforce-https-cloudflare.sh
 
       - name: Verify Cloudflare edge redirect
+        if: steps.cloudflare.outcome == 'success'
         run: |
           sleep 15
-          curl -sI "http://${{ vars.CUSTOM_DOMAIN || 'nshbeatsthearedl.christmas' }}" | head -5
-          curl -sI "https://${{ vars.CUSTOM_DOMAIN || 'nshbeatsthearedl.christmas' }}" | head -5
+          curl -sI "http://nshbeatsthearedl.christmas" | head -5
+          curl -sI "https://nshbeatsthearedl.christmas" | head -5
 
       - name: Provision GitHub Pages cert and enforce HTTPS
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          MAX_WAIT_SECS: 300
         run: bash scripts/enforce-https-github.sh
 
       - name: Upgrade Cloudflare SSL to Full (strict)
-        if: success()
+        if: steps.cloudflare.outcome == 'success'
+        continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        continue-on-error: true
         run: |
           DOMAIN="nshbeatsthearedl.christmas"
           ZONE_ID="$(curl -sS "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN}" \
