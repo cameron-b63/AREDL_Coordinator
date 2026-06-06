@@ -81,6 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
     defaults:
       run:
         working-directory: frontend
@@ -100,3 +101,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
           cname: nshbeatsthearedl.christmas
+
+      - name: Enforce HTTPS on GitHub Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method PUT "repos/${{ github.repository }}/pages" \
+            -f https_enforced=true \
+            -f cname=nshbeatsthearedl.christmas \
+            -f build_type=legacy

@@ -53,7 +53,7 @@ backend/    Rust Worker + D1 migrations
 
 1. Push this repository to GitHub (public repo for free Pages).
 2. Add repository secrets:
-   - `CLOUDFLARE_API_TOKEN` — Cloudflare dashboard → My Profile → API Tokens → "Edit Cloudflare Workers" template
+   - `CLOUDFLARE_API_TOKEN` — Cloudflare dashboard → My Profile → API Tokens. Use the "Edit Cloudflare Workers" template for deploys, and add **Zone → DNS Edit** plus **Zone → Zone Settings Edit** for the custom domain (required by the Enforce HTTPS workflow).
    - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard sidebar
    - `DISCORD_CLIENT_ID` — same value as production Discord OAuth (see §4)
    - `DISCORD_CLIENT_SECRET` — same value as production Discord OAuth (see §4)
@@ -63,6 +63,11 @@ backend/    Rust Worker + D1 migrations
    GitHub Actions uploads the Discord/JWT secrets on every backend deploy. Without them, a push to `main` deploys a Worker version with no OAuth bindings.
 3. Enable GitHub Pages: Settings → Pages → Source: **Deploy from a branch** → `gh-pages` / `/ (root)`
 4. Enable workflow permissions: Settings → Actions → General → **Read and write permissions**
+5. Custom domain HTTPS (`nshbeatsthearedl.christmas`):
+   - Point the domain at Cloudflare and add GitHub Pages DNS records (four `A` records to GitHub Pages IPs for the apex, or a `CNAME` to `<username>.github.io` for `www`).
+   - In Cloudflare: set SSL/TLS mode to **Full** (never **Flexible** with GitHub Enforce HTTPS — that causes redirect loops), enable the **orange-cloud proxy** on the Pages records, and turn on **Always Use HTTPS** under SSL/TLS → Edge Certificates.
+   - In GitHub Pages settings, enable **Enforce HTTPS** once the certificate is active. Deploys also call the Pages API to keep this enabled.
+   - To apply or re-apply the full Cloudflare + GitHub HTTPS setup, run the **Enforce HTTPS** workflow from the Actions tab (or `gh workflow run enforce-https.yml`).
 
 ### 3. Frontend API URL
 
