@@ -48,6 +48,67 @@ try_patch_setting "Always Use HTTPS" "always_use_https" "on" || SETTINGS_OK=fals
 try_patch_setting "Automatic HTTPS Rewrites" "automatic_https_rewrites" "on" || SETTINGS_OK=false
 try_patch_setting "Minimum TLS version (1.2)" "min_tls_version" "1.2" || SETTINGS_OK=false
 
+try_configure_www_redirect() {
+  local www_host="www.${DOMAIN}"
+  local existing response payload
+  existing="$(cf_api GET "/zones/${ZONE_ID}/rulesets/phases/http_request_dynamic_redirect/entrypoint" || true)"
+  payload="$(echo "$existing" | DOMAIN="$DOMAIN" python3 - <<'PY'
+import json, os, sys
+
+domain = os.environ["DOMAIN"]
+www_host = f"www.{domain}"
+existing_raw = sys.stdin.read().strip()
+rules = []
+if existing_raw:
+    try:
+        data = json.loads(existing_raw)
+        if data.get("success"):
+            rules = list((data.get("result") or {}).get("rules") or [])
+    except json.JSONDecodeError:
+        pass
+
+for rule in rules:
+    if www_host in (rule.get("expression") or ""):
+        print(json.dumps({"skip": True}))
+        sys.exit(0)
+
+rules.insert(0, {
+    "expression": f'(http.host eq "{www_host}")',
+    "description": "Redirect www to apex",
+    "action": "redirect",
+    "action_parameters": {
+        "from_value": {
+            "status_code": 301,
+            "target_url": {
+                "expression": f'concat("https://{domain}", http.request.uri.path)',
+            },
+            "preserve_query_string": True,
+        }
+    },
+})
+print(json.dumps({"rules": rules}))
+PY
+)"
+
+  if echo "$payload" | python3 -c "import sys, json; sys.exit(0 if json.load(sys.stdin).get('skip') else 1)"; then
+    echo "www -> apex redirect already configured."
+    return 0
+  fi
+
+  response="$(cf_api PUT "/zones/${ZONE_ID}/rulesets/phases/http_request_dynamic_redirect/entrypoint" -d "$payload")"
+  if echo "$response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
+    echo "Configured redirect ${www_host} -> https://${DOMAIN}."
+    return 0
+  fi
+
+  echo "Warning: unable to configure www -> apex redirect (token may lack Zone Rules Edit)." >&2
+  echo "$response" | python3 -m json.tool >&2 || echo "$response" >&2
+  return 1
+}
+
+REDIRECT_OK=true
+try_configure_www_redirect || REDIRECT_OK=false
+
 echo "Fetching DNS records..."
 records_response="$(cf_api GET "/zones/${ZONE_ID}/dns_records?per_page=100")"
 if ! echo "$records_response" | python3 -c "import sys, json; d=json.load(sys.stdin); sys.exit(0 if d.get('success') else 1)"; then
@@ -105,6 +166,10 @@ fi
 
 if [[ "$SETTINGS_OK" != true ]]; then
   echo "Warning: zone settings were not fully applied. Update CLOUDFLARE_API_TOKEN with Zone Settings Edit for ${DOMAIN}." >&2
+fi
+
+if [[ "$REDIRECT_OK" != true ]]; then
+  echo "Warning: www redirect was not applied. Add a manual redirect from www.${DOMAIN} to https://${DOMAIN}." >&2
 fi
 
 echo "Cloudflare HTTPS configuration complete."

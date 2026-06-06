@@ -138,6 +138,10 @@ make deploy-backend   # applies remote D1 migrations, then wrangler deploy
 make deploy-frontend  # builds static assets (Pages still updated by CI on push)
 ```
 
+**Important:** Deploy the backend only via GitHub Actions or `make deploy-backend` from [`backend/wrangler.toml`](backend/wrangler.toml). Do **not** connect Cloudflare Workers Builds to this repository for `aredl-coordinator` — a competing Vite/Node build can overwrite the Rust API worker after each push. CI runs [`scripts/disable-workers-builds.sh`](scripts/disable-workers-builds.sh) to remove any Workers Builds triggers on deploy.
+
+For `www.nshbeatsthearedl.christmas`, run the **Enforce HTTPS** workflow (or `scripts/enforce-https-cloudflare.sh`) to redirect www to the apex domain and avoid SSL/CORS mismatches.
+
 ## API routes
 
 | Route | Description |
