@@ -4,6 +4,7 @@ import { UserBadge } from '../components/auth/UserBadge';
 import { deleteManualHardest, fetchLevels, putManualHardest } from '../lib/api';
 import { resolveLevelNameByPosition } from '../lib/levelLookup';
 import { useAuth } from '../hooks/useAuth';
+import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { Level } from '../lib/types/level';
 import { boardPath } from '../lib/paths';
 import type { UserHardest } from '../lib/types/user';
@@ -17,6 +18,12 @@ function settingsHardestLabel(hardest: UserHardest | null): string {
 
 export function SettingsPage() {
   const { user, refresh, setUser } = useAuth();
+  const {
+    randomLevelCrateAnimation,
+    setRandomLevelCrateAnimation,
+    randomLevelCrateSound,
+    setRandomLevelCrateSound,
+  } = useUserPreferences(user);
   const [levels, setLevels] = useState<Level[] | null>(null);
   const [positionInput, setPositionInput] = useState('');
   const [previewName, setPreviewName] = useState<string | null>(null);
@@ -121,8 +128,43 @@ export function SettingsPage() {
       </header>
 
       <main class="settings-page__main">
+        <section class="settings-page__section">
+          <h2 class="settings-page__section-title">Random level</h2>
+          <p class="settings-page__hint">
+            Controls the dice-button roll on the board.{' '}
+            {signedIn
+              ? 'Changes are saved to your account.'
+              : 'Sign in to save these preferences across devices.'}
+          </p>
+          <label class="settings-page__option">
+            <input
+              type="checkbox"
+              checked={randomLevelCrateAnimation}
+              onChange={(event) =>
+                setRandomLevelCrateAnimation(
+                  (event.currentTarget as HTMLInputElement).checked,
+                )
+              }
+            />
+            <span class="settings-page__option-label">Crate opening animation</span>
+          </label>
+          <label class="settings-page__option">
+            <input
+              type="checkbox"
+              checked={randomLevelCrateSound}
+              disabled={!randomLevelCrateAnimation}
+              onChange={(event) =>
+                setRandomLevelCrateSound((event.currentTarget as HTMLInputElement).checked)
+              }
+            />
+            <span class="settings-page__option-label">Play sound effects</span>
+          </label>
+        </section>
+
         {!signedIn ? (
-          <p class="settings-page__message">Sign in to set your hardest and save filter preferences.</p>
+          <p class="settings-page__message">
+            Sign in to set your hardest level and save filter preferences.
+          </p>
         ) : (
           <section class="settings-page__section">
             <h2 class="settings-page__section-title">Hardest level</h2>

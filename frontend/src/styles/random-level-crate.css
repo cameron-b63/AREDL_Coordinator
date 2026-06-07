@@ -1,0 +1,142 @@
+.crate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: rgba(26, 26, 26, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.crate-overlay__frame {
+  width: min(100%, 52rem);
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.crate-overlay__viewport {
+  position: relative;
+  overflow: hidden;
+  height: 8.5rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-inset);
+  box-shadow: var(--shadow-inset);
+}
+
+.crate-overlay__marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  width: 3px;
+  transform: translateX(-50%);
+  background: var(--color-accent);
+  box-shadow: 0 0 12px var(--color-accent-soft);
+  pointer-events: none;
+}
+
+.crate-overlay__marker::before,
+.crate-overlay__marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+
+.crate-overlay__marker::before {
+  top: 0;
+  border-top: 10px solid var(--color-accent);
+}
+
+.crate-overlay__marker::after {
+  bottom: 0;
+  border-bottom: 10px solid var(--color-accent);
+}
+
+.crate-overlay__strip {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+  padding: var(--space-3) 0;
+  will-change: transform;
+}
+
+.crate-reel-item {
+  flex: 0 0 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+  color: var(--color-text-on-dark);
+  overflow: hidden;
+}
+
+.crate-reel-item--winner {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  animation: crate-winner-pulse 0.6s ease-out;
+}
+
+.crate-reel-item__position {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted-on-dark);
+}
+
+.crate-reel-item__name {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crate-reel-item__points {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted-on-dark);
+}
+
+@keyframes crate-winner-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-accent-soft);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px var(--color-accent-soft);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crate-reel-item--winner {
+    animation: none;
+  }
+}

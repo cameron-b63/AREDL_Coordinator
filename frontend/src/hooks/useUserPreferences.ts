@@ -24,6 +24,8 @@ export function useUserPreferences(user: User | null | undefined) {
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(DEFAULT_SORT_DIRECTION);
   const [sortMode, setSortMode] = useState<SortMode>(DEFAULT_SORT_MODE);
+  const [randomLevelCrateAnimation, setRandomLevelCrateAnimation] = useState(true);
+  const [randomLevelCrateSound, setRandomLevelCrateSound] = useState(true);
   const hydratedForUserId = useRef<string | null>(null);
   const skipSaveRef = useRef(true);
 
@@ -43,11 +45,15 @@ export function useUserPreferences(user: User | null | undefined) {
       setFilters(DEFAULT_LEVEL_FILTERS);
       setSortDirection(DEFAULT_SORT_DIRECTION);
       setSortMode(DEFAULT_SORT_MODE);
+      setRandomLevelCrateAnimation(true);
+      setRandomLevelCrateSound(true);
     } else {
       const prefs = user.preferences ?? defaultUserPreferences();
       setFilters(levelFiltersFromStored(prefs.filters));
       setSortDirection(prefs.sortDirection);
       setSortMode(prefs.sortMode);
+      setRandomLevelCrateAnimation(prefs.randomLevelCrateAnimation !== false);
+      setRandomLevelCrateSound(prefs.randomLevelCrateSound !== false);
     }
 
     const timer = window.setTimeout(() => {
@@ -65,6 +71,8 @@ export function useUserPreferences(user: User | null | undefined) {
       filters: storedFromLevelFilters(filters),
       sortDirection,
       sortMode,
+      randomLevelCrateAnimation,
+      randomLevelCrateSound,
     };
 
     const timer = window.setTimeout(() => {
@@ -74,7 +82,7 @@ export function useUserPreferences(user: User | null | undefined) {
     }, SAVE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [filters, sortDirection, sortMode, user]);
+  }, [filters, sortDirection, sortMode, randomLevelCrateAnimation, randomLevelCrateSound, user]);
 
   const setFilter = useCallback(<K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -95,7 +103,11 @@ export function useUserPreferences(user: User | null | undefined) {
     setSortDirection(defaults.sortDirection);
     setSortMode(defaults.sortMode);
     if (user) {
-      putPreferences(defaults)
+      putPreferences({
+        ...defaults,
+        randomLevelCrateAnimation,
+        randomLevelCrateSound,
+      })
         .catch((error) => {
           console.error('Failed to reset preferences', error);
         })
@@ -105,7 +117,7 @@ export function useUserPreferences(user: User | null | undefined) {
     } else {
       skipSaveRef.current = false;
     }
-  }, [user]);
+  }, [randomLevelCrateAnimation, randomLevelCrateSound, user]);
 
   return {
     filters,
@@ -115,5 +127,9 @@ export function useUserPreferences(user: User | null | undefined) {
     toggleSortDirection,
     toggleSortMode,
     resetToDefaults,
+    randomLevelCrateAnimation,
+    setRandomLevelCrateAnimation,
+    randomLevelCrateSound,
+    setRandomLevelCrateSound,
   };
 }

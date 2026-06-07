@@ -7,21 +7,31 @@ import { PlayerStatsPanel } from '../components/layout/PlayerStatsPanel';
 import { StatsDrawer } from '../components/layout/StatsDrawer';
 import { FiltersPanel } from '../components/filters/FiltersPanel';
 import { LevelList } from '../components/levels/LevelList';
+import { RandomLevelCrateOverlay } from '../components/ui/RandomLevelCrateOverlay';
 import { useAuth } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
 import { useLevels } from '../hooks/useLevels';
 import { useUserPreferences } from '../hooks/useUserPreferences';
+import { buildCrateReel, DEFAULT_CRATE_WIN_INDEX } from '../lib/buildCrateReel';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
-import { canPickRandomLevel, pickRandomLevel } from '../lib/randomLevel';
+import { canPickRandomLevel, pickRandomLevelWithPool } from '../lib/randomLevel';
 import { computeUserTagStats } from '../lib/tagStats';
 import { filtersAreActive, formatUserSearchQuery } from '../lib/types/filters';
+import type { BoardLevel } from '../lib/types/board';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
 import { normalizeUserClaims, normalizeHardest, toActiveClaim } from '../lib/types/claimMutation';
+
+interface CrateRollState {
+  winner: BoardLevel;
+  reel: BoardLevel[];
+  winIndex: number;
+}
 
 export function BoardPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
   const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(true);
+  const [crateRoll, setCrateRoll] = useState<CrateRollState | null>(null);
   const { user, setClaims, patchHardest } = useAuth();
 
   useEffect(() => {
@@ -40,6 +50,9 @@ export function BoardPage() {
     toggleSortDirection,
     toggleSortMode,
     resetToDefaults,
+    randomLevelCrateAnimation,
+    setRandomLevelCrateAnimation,
+    randomLevelCrateSound,
   } =
     useUserPreferences(user);
   const signedIn = user !== null && user !== undefined;
@@ -67,14 +80,40 @@ export function BoardPage() {
   );
   const randomLevelDisabled =
     state.status !== 'ready' ||
-    !canPickRandomLevel(boardLevels, user ?? null, positionRange);
+    !canPickRandomLevel(boardLevels, user ?? null, positionRange) ||
+    crateRoll !== null;
 
   const handleRandomLevelPick = useCallback(() => {
-    const level = pickRandomLevel(boardLevels, user ?? null, positionRange);
-    if (level) {
-      setQuery(String(level.gameLevelId));
+    const result = pickRandomLevelWithPool(boardLevels, user ?? null, positionRange);
+    if (!result) {
+      return;
     }
-  }, [boardLevels, positionRange, setQuery, user]);
+
+    const useAnimation =
+      randomLevelCrateAnimation &&
+      result.pool.length > 1 &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (useAnimation) {
+      setCrateRoll({
+        winner: result.winner,
+        reel: buildCrateReel(result.pool, result.winner),
+        winIndex: DEFAULT_CRATE_WIN_INDEX,
+      });
+      return;
+    }
+
+    setQuery(String(result.winner.gameLevelId));
+  }, [boardLevels, positionRange, randomLevelCrateAnimation, setQuery, user]);
+
+  const handleCrateComplete = useCallback(() => {
+    setCrateRoll((current) => {
+      if (current) {
+        setQuery(String(current.winner.gameLevelId));
+      }
+      return null;
+    });
+  }, [setQuery]);
 
   const handleUsernameSearch = useCallback(
     (username: string) => {
@@ -194,9 +233,19 @@ export function BoardPage() {
             onToggleSortDirection={toggleSortDirection}
             onResetFilters={resetToDefaults}
             onClose={closeFilters}
+            randomLevelCrateAnimation={randomLevelCrateAnimation}
+            onRandomLevelCrateAnimationChange={setRandomLevelCrateAnimation}
           />
         }
       />
+      {crateRoll ? (
+        <RandomLevelCrateOverlay
+          reel={crateRoll.reel}
+          winIndex={crateRoll.winIndex}
+          soundEnabled={randomLevelCrateSound}
+          onComplete={handleCrateComplete}
+        />
+      ) : null}
     </AppLayout>
   );
 }

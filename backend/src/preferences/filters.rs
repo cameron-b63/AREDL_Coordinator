@@ -22,6 +22,10 @@ pub struct StoredUserPreferences {
     pub sort_direction: String,
     #[serde(default = "default_sort_mode")]
     pub sort_mode: String,
+    #[serde(default = "default_random_level_crate_animation")]
+    pub random_level_crate_animation: bool,
+    #[serde(default = "default_random_level_crate_sound")]
+    pub random_level_crate_sound: bool,
 }
 
 const VALID_CLAIM_KINDS: &[&str] = &[
@@ -45,11 +49,21 @@ pub fn default_preferences() -> StoredUserPreferences {
         },
         sort_direction: "asc".into(),
         sort_mode: default_sort_mode(),
+        random_level_crate_animation: default_random_level_crate_animation(),
+        random_level_crate_sound: default_random_level_crate_sound(),
     }
 }
 
 fn default_sort_mode() -> String {
     "position".into()
+}
+
+fn default_random_level_crate_animation() -> bool {
+    true
+}
+
+fn default_random_level_crate_sound() -> bool {
+    true
 }
 
 pub fn parse_preferences_json(json: Option<&str>) -> StoredUserPreferences {

@@ -47,6 +47,40 @@
   color: var(--color-muted-on-dark);
 }
 
+.settings-page__section {
+  margin-bottom: var(--space-6);
+}
+
+.settings-page__section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-page__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  cursor: pointer;
+}
+
+.settings-page__option:last-of-type {
+  margin-bottom: 0;
+}
+
+.settings-page__option input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.settings-page__option input:disabled + .settings-page__option-label {
+  opacity: 0.5;
+}
+
+.settings-page__option-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
 .settings-page__section-title {
   margin: 0 0 var(--space-3);
   font-family: var(--font-display);

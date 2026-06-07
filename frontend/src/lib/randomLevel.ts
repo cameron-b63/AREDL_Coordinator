@@ -74,19 +74,36 @@ function candidatesForTier(
   });
 }
 
-export function pickRandomLevel(
+export interface RandomLevelPickResult {
+  winner: BoardLevel;
+  pool: BoardLevel[];
+}
+
+export function pickRandomLevelWithPool(
   levels: BoardLevel[],
   user: User | null,
   range: PositionRange,
-): BoardLevel | null {
+): RandomLevelPickResult | null {
   for (const tier of RANDOM_LEVEL_TIERS) {
     const candidates = candidatesForTier(levels, user, range, tier);
     if (candidates.length === 0) {
       continue;
     }
-    return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+    const winner = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!winner) {
+      return null;
+    }
+    return { winner, pool: candidates };
   }
   return null;
+}
+
+export function pickRandomLevel(
+  levels: BoardLevel[],
+  user: User | null,
+  range: PositionRange,
+): BoardLevel | null {
+  return pickRandomLevelWithPool(levels, user, range)?.winner ?? null;
 }
 
 export function canPickRandomLevel(

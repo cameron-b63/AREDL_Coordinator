@@ -25,6 +25,8 @@ export interface UserPreferences {
   filters: StoredLevelFilters;
   sortDirection: SortDirection;
   sortMode: SortMode;
+  randomLevelCrateAnimation?: boolean;
+  randomLevelCrateSound?: boolean;
 }
 
 export function defaultUserPreferences(): UserPreferences {
@@ -32,6 +34,8 @@ export function defaultUserPreferences(): UserPreferences {
     filters: storedFromLevelFilters(DEFAULT_LEVEL_FILTERS),
     sortDirection: DEFAULT_SORT_DIRECTION,
     sortMode: DEFAULT_SORT_MODE,
+    randomLevelCrateAnimation: true,
+    randomLevelCrateSound: true,
   };
 }
 
@@ -82,5 +86,7 @@ export function normalizeUserPreferences(
     },
     sortDirection,
     sortMode,
+    randomLevelCrateAnimation: raw.randomLevelCrateAnimation !== false,
+    randomLevelCrateSound: raw.randomLevelCrateSound !== false,
   };
 }
