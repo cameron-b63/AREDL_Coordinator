@@ -6,8 +6,8 @@ import type { ClaimMutationResponse } from '../../lib/types/claimMutation';
 import type { User } from '../../lib/types/user';
 import { LevelCard } from './LevelCard';
 
-export const LEVEL_ROW_HEIGHT = 172;
-export const LEVEL_ROW_HEIGHT_STACKED = 280;
+export const LEVEL_ROW_HEIGHT = 196;
+export const LEVEL_ROW_HEIGHT_STACKED = 304;
 export const LEVEL_ROW_GAP = 16;
 export const LEVEL_ROW_STRIDE = LEVEL_ROW_HEIGHT + LEVEL_ROW_GAP;
 export const LEVEL_ROW_STRIDE_STACKED = LEVEL_ROW_HEIGHT_STACKED + LEVEL_ROW_GAP;
@@ -18,6 +18,7 @@ interface LevelListProps {
   loading: boolean;
   signedIn: boolean;
   user: User | null;
+  topTagNames?: ReadonlySet<string>;
   layoutKey: string;
   error: { message: string; retry: () => void } | null;
   onClaimChange: (result: ClaimMutationResponse) => void;
@@ -29,6 +30,7 @@ export function LevelList({
   loading,
   signedIn,
   user,
+  topTagNames,
   layoutKey,
   error,
   onClaimChange,
@@ -150,6 +152,7 @@ export function LevelList({
                 level={level}
                 user={user}
                 signedIn={signedIn}
+                topTagNames={topTagNames}
                 onClaimChange={onClaimChange}
                 onUsernameSearch={onUsernameSearch}
               />

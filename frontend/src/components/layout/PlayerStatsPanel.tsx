@@ -1,4 +1,3 @@
-import { useState } from 'preact/hooks';
 import { computeUserTagStats } from '../../lib/tagStats';
 import type { BoardLevel } from '../../lib/types/board';
 import type { User } from '../../lib/types/user';
@@ -6,10 +5,16 @@ import type { User } from '../../lib/types/user';
 interface PlayerStatsPanelProps {
   user: User;
   levels: BoardLevel[];
+  includeSupposedlyCompleted: boolean;
+  onIncludeSupposedlyCompletedChange: (value: boolean) => void;
 }
 
-export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
-  const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(false);
+export function PlayerStatsPanel({
+  user,
+  levels,
+  includeSupposedlyCompleted,
+  onIncludeSupposedlyCompletedChange,
+}: PlayerStatsPanelProps) {
   const tagStats = computeUserTagStats(
     levels,
     user,
@@ -60,7 +65,7 @@ export function PlayerStatsPanel({ user, levels }: PlayerStatsPanelProps) {
           type="checkbox"
           checked={includeSupposedlyCompleted}
           onChange={(event) =>
-            setIncludeSupposedlyCompleted(
+            onIncludeSupposedlyCompletedChange(
               (event.currentTarget as HTMLInputElement).checked,
             )
           }

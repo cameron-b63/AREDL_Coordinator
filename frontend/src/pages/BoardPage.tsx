@@ -13,6 +13,7 @@ import { useLevels } from '../hooks/useLevels';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
 import { canPickRandomLevel, pickRandomLevel } from '../lib/randomLevel';
+import { computeUserTagStats } from '../lib/tagStats';
 import { filtersAreActive, formatUserSearchQuery } from '../lib/types/filters';
 import type { ClaimMutationResponse } from '../lib/types/claimMutation';
 import { normalizeUserClaims, normalizeHardest, toActiveClaim } from '../lib/types/claimMutation';
@@ -20,6 +21,7 @@ import { normalizeUserClaims, normalizeHardest, toActiveClaim } from '../lib/typ
 export function BoardPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(true);
   const { user, setClaims, patchHardest } = useAuth();
 
   useEffect(() => {
@@ -49,6 +51,13 @@ export function BoardPage() {
   );
 
   const boardLevels = state.status === 'ready' ? state.levels : [];
+  const topTagNames = useMemo(() => {
+    if (!user || boardLevels.length === 0) return new Set<string>();
+    return new Set(
+      computeUserTagStats(boardLevels, user, includeSupposedlyCompleted)
+        .topTags.map(({ tag }) => tag),
+    );
+  }, [user, boardLevels, includeSupposedlyCompleted]);
   const positionRange = useMemo(
     () => ({
       positionMin: filters.positionMin,
@@ -152,6 +161,7 @@ export function BoardPage() {
             loading={loading}
             signedIn={signedIn}
             user={user ?? null}
+            topTagNames={topTagNames}
             layoutKey={`${filtersOpen ? 'open' : 'closed'}-${statsOpen ? 'stats' : 'nostats'}-${user ? 'in' : 'out'}`}
             error={error}
             onClaimChange={handleClaimChange}
@@ -161,7 +171,12 @@ export function BoardPage() {
         statsPanel={
           user ? (
             <StatsDrawer id="stats-panel" open={statsOpen} onClose={closeStats}>
-              <PlayerStatsPanel user={user} levels={boardLevels} />
+              <PlayerStatsPanel
+                user={user}
+                levels={boardLevels}
+                includeSupposedlyCompleted={includeSupposedlyCompleted}
+                onIncludeSupposedlyCompletedChange={setIncludeSupposedlyCompleted}
+              />
             </StatsDrawer>
           ) : null
         }

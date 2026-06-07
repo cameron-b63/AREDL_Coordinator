@@ -20,6 +20,7 @@ interface LevelCardProps {
   level: BoardLevel;
   user: User | null;
   signedIn: boolean;
+  topTagNames?: ReadonlySet<string>;
   onClaimChange: (result: ClaimMutationResponse) => void;
   onUsernameSearch?: (username: string) => void;
 }
@@ -28,6 +29,7 @@ export function LevelCard({
   level,
   user,
   signedIn,
+  topTagNames,
   onClaimChange,
   onUsernameSearch,
 }: LevelCardProps) {
@@ -143,6 +145,18 @@ export function LevelCard({
           />
         )}
       </div>
+      {level.tags.length > 0 ? (
+        <div class="level-card__tags" aria-label="Level tags">
+          {level.tags.map((tag) => (
+            <span
+              key={tag}
+              class={`level-card__tag${topTagNames?.has(tag) ? ' level-card__tag--top' : ''}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </article>
   );
 }
