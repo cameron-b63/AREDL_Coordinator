@@ -18,18 +18,14 @@ export function LevelCardShowcase({ level }: LevelCardShowcaseProps) {
     event.preventDefault();
     event.stopPropagation();
 
-    const tab = window.open('about:blank', '_blank', 'noopener,noreferrer');
-
     setLoading(true);
     setError(null);
 
     try {
       const { videoUrl } = await fetchShowcaseVideo(level.id);
       setCachedUrl(videoUrl);
-      if (tab) tab.location.href = videoUrl;
-      else window.location.assign(videoUrl);
+      window.open(videoUrl, '_blank', 'noopener,noreferrer');
     } catch (err) {
-      tab?.close();
       const message =
         err instanceof ApiError && err.status === 404
           ? 'No showcase video'
