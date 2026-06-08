@@ -162,7 +162,6 @@ export function RandomLevelCrateOverlay({
       return;
     }
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const itemStep = CRATE_ITEM_WIDTH + CRATE_ITEM_GAP;
     const finalOffset = viewport.offsetWidth / 2 - (winIndex * itemStep + CRATE_ITEM_WIDTH / 2);
     finalOffsetRef.current = finalOffset;
@@ -199,11 +198,6 @@ export function RandomLevelCrateOverlay({
     const layoutRaf2 = requestAnimationFrame(() => {
       layoutRaf = requestAnimationFrame(() => {
         void strip.offsetHeight;
-        if (reducedMotion) {
-          snapToFinal();
-          revealWinner();
-          return;
-        }
         startScroll(SCROLL_DURATION_MS);
       });
     });
