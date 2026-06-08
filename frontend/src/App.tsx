@@ -1,3 +1,5 @@
+import { useAuth } from './hooks/useAuth';
+import { useUserPreferences } from './hooks/useUserPreferences';
 import { AdminPortal } from './pages/AdminPortal';
 import { BoardPage } from './pages/BoardPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -15,13 +17,16 @@ function isSettingsRoute(): boolean {
 }
 
 export function App() {
+  const auth = useAuth();
+  const prefs = useUserPreferences(auth.user, auth.setUser);
+
   if (isAdminRoute()) {
-    return <AdminPortal />;
+    return <AdminPortal auth={auth} />;
   }
 
   if (isSettingsRoute()) {
-    return <SettingsPage />;
+    return <SettingsPage auth={auth} prefs={prefs} />;
   }
 
-  return <BoardPage />;
+  return <BoardPage auth={auth} prefs={prefs} />;
 }

@@ -4,6 +4,7 @@ import {
   defaultUserPreferences,
   levelFiltersFromStored,
   storedFromLevelFilters,
+  type UserPreferences,
 } from '../lib/types/preferences';
 import {
   DEFAULT_LEVEL_FILTERS,
@@ -19,6 +20,53 @@ import type { User } from '../lib/types/user';
 
 const SAVE_DEBOUNCE_MS = 400;
 
+function buildSavePayload(
+  filters: LevelFilters,
+  sortDirection: SortDirection,
+  sortMode: SortMode,
+  randomLevelCrateAnimation: boolean,
+  randomLevelCrateSound: boolean,
+): UserPreferences {
+  return {
+    filters: storedFromLevelFilters(filters),
+    sortDirection,
+    sortMode,
+    randomLevelCrateAnimation,
+    randomLevelCrateSound,
+  };
+}
+
+function serializeSavePayload(payload: UserPreferences): string {
+  return JSON.stringify(payload);
+}
+
+function prefsKeyForUser(user: User | null): string {
+  if (!user) {
+    return 'guest';
+  }
+  return JSON.stringify(user.preferences ?? defaultUserPreferences());
+}
+
+function applyStoredPreferences(
+  prefs: UserPreferences,
+  setFilters: (value: LevelFilters) => void,
+  setSortDirection: (value: SortDirection) => void,
+  setSortMode: (value: SortMode) => void,
+  setRandomLevelCrateAnimation: (value: boolean) => void,
+  setRandomLevelCrateSound: (value: boolean) => void,
+): UserPreferences {
+  setFilters(levelFiltersFromStored(prefs.filters));
+  setSortDirection(prefs.sortDirection);
+  setSortMode(prefs.sortMode);
+  setRandomLevelCrateAnimation(prefs.randomLevelCrateAnimation !== false);
+  setRandomLevelCrateSound(prefs.randomLevelCrateSound !== false);
+  return {
+    ...prefs,
+    randomLevelCrateAnimation: prefs.randomLevelCrateAnimation !== false,
+    randomLevelCrateSound: prefs.randomLevelCrateSound !== false,
+  };
+}
+
 export function useUserPreferences(
   user: User | null | undefined,
   setUser?: (user: User) => void,
@@ -27,77 +75,132 @@ export function useUserPreferences(
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(DEFAULT_SORT_DIRECTION);
   const [sortMode, setSortMode] = useState<SortMode>(DEFAULT_SORT_MODE);
-  const [randomLevelCrateAnimation, setRandomLevelCrateAnimation] = useState(true);
-  const [randomLevelCrateSound, setRandomLevelCrateSound] = useState(true);
-  const hydratedForUserId = useRef<string | null>(null);
+  const [randomLevelCrateAnimation, setRandomLevelCrateAnimationState] = useState(true);
+  const [randomLevelCrateSound, setRandomLevelCrateSoundState] = useState(true);
+
   const skipSaveRef = useRef(true);
+  const savingRef = useRef(false);
+  const lastSavedPayloadRef = useRef<string | null>(null);
+  const lastSyncedUserIdRef = useRef<string | null | undefined>(undefined);
+  const lastSyncedPrefsKeyRef = useRef<string>('');
+
+  const markSynced = useCallback((syncedUser: User | null, payload: UserPreferences) => {
+    lastSavedPayloadRef.current = serializeSavePayload(payload);
+    lastSyncedUserIdRef.current = syncedUser?.id ?? null;
+    lastSyncedPrefsKeyRef.current = prefsKeyForUser(syncedUser);
+  }, []);
 
   useEffect(() => {
-    if (user === undefined) {
+    if (user === undefined || savingRef.current) {
       return;
     }
 
     const userId = user?.id ?? null;
-    if (hydratedForUserId.current === userId) {
+    const prefsKey = prefsKeyForUser(user);
+
+    if (lastSyncedUserIdRef.current === userId && lastSyncedPrefsKeyRef.current === prefsKey) {
       return;
     }
-    hydratedForUserId.current = userId;
+
     skipSaveRef.current = true;
 
     if (!user) {
       setFilters(DEFAULT_LEVEL_FILTERS);
       setSortDirection(DEFAULT_SORT_DIRECTION);
       setSortMode(DEFAULT_SORT_MODE);
-      setRandomLevelCrateAnimation(true);
-      setRandomLevelCrateSound(true);
+      setRandomLevelCrateAnimationState(true);
+      setRandomLevelCrateSoundState(true);
+      markSynced(null, defaultUserPreferences());
     } else {
       const prefs = user.preferences ?? defaultUserPreferences();
-      setFilters(levelFiltersFromStored(prefs.filters));
-      setSortDirection(prefs.sortDirection);
-      setSortMode(prefs.sortMode);
-      setRandomLevelCrateAnimation(prefs.randomLevelCrateAnimation !== false);
-      setRandomLevelCrateSound(prefs.randomLevelCrateSound !== false);
+      const normalized = applyStoredPreferences(
+        prefs,
+        setFilters,
+        setSortDirection,
+        setSortMode,
+        setRandomLevelCrateAnimationState,
+        setRandomLevelCrateSoundState,
+      );
+      markSynced(user, normalized);
     }
 
     const timer = window.setTimeout(() => {
       skipSaveRef.current = false;
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [user]);
+  }, [markSynced, user]);
+
+  const savePreferencesNow = useCallback(
+    async (overrides?: {
+      randomLevelCrateAnimation?: boolean;
+      randomLevelCrateSound?: boolean;
+    }) => {
+      if (!user) {
+        return;
+      }
+
+      const payload = buildSavePayload(
+        filters,
+        sortDirection,
+        sortMode,
+        overrides?.randomLevelCrateAnimation ?? randomLevelCrateAnimation,
+        overrides?.randomLevelCrateSound ?? randomLevelCrateSound,
+      );
+
+      const serialized = serializeSavePayload(payload);
+      if (serialized === lastSavedPayloadRef.current) {
+        return;
+      }
+
+      skipSaveRef.current = true;
+      savingRef.current = true;
+      try {
+        const updated = await putPreferences(payload);
+        markSynced(updated, updated.preferences);
+        setUser?.(updated);
+      } catch (error) {
+        console.error('Failed to save preferences', error);
+      } finally {
+        savingRef.current = false;
+        window.setTimeout(() => {
+          skipSaveRef.current = false;
+        }, 0);
+      }
+    },
+    [
+      filters,
+      markSynced,
+      randomLevelCrateAnimation,
+      randomLevelCrateSound,
+      setUser,
+      sortDirection,
+      sortMode,
+      user,
+    ],
+  );
 
   useEffect(() => {
     if (skipSaveRef.current || !user) {
       return;
     }
 
-    const payload = {
-      filters: storedFromLevelFilters(filters),
+    const payload = buildSavePayload(
+      filters,
       sortDirection,
       sortMode,
       randomLevelCrateAnimation,
       randomLevelCrateSound,
-    };
+    );
+    if (serializeSavePayload(payload) === lastSavedPayloadRef.current) {
+      return;
+    }
 
     const timer = window.setTimeout(() => {
-      putPreferences(payload)
-        .then((updated) => {
-          setUser?.(updated);
-        })
-        .catch((error) => {
-          console.error('Failed to save preferences', error);
-        });
+      void savePreferencesNow();
     }, SAVE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [
-    filters,
-    sortDirection,
-    sortMode,
-    randomLevelCrateAnimation,
-    randomLevelCrateSound,
-    setUser,
-    user,
-  ]);
+  }, [filters, savePreferencesNow, sortDirection, sortMode, user]);
 
   const setFilter = useCallback(<K extends keyof LevelFilters>(key: K, value: LevelFilters[K]) => {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -111,31 +214,62 @@ export function useUserPreferences(
     setSortMode((current) => (current === 'position' ? 'record_date' : 'position'));
   }, []);
 
+  const setRandomLevelCrateAnimation = useCallback(
+    (checked: boolean) => {
+      setRandomLevelCrateAnimationState(checked);
+      if (user) {
+        void savePreferencesNow({ randomLevelCrateAnimation: checked });
+      }
+    },
+    [savePreferencesNow, user],
+  );
+
+  const setRandomLevelCrateSound = useCallback(
+    (checked: boolean) => {
+      setRandomLevelCrateSoundState(checked);
+      if (user) {
+        void savePreferencesNow({ randomLevelCrateSound: checked });
+      }
+    },
+    [savePreferencesNow, user],
+  );
+
   const resetToDefaults = useCallback(() => {
     const defaults = defaultUserPreferences();
     skipSaveRef.current = true;
+    savingRef.current = true;
     setFilters(levelFiltersFromStored(defaults.filters));
     setSortDirection(defaults.sortDirection);
     setSortMode(defaults.sortMode);
     if (user) {
-      putPreferences({
+      const payload = {
         ...defaults,
         randomLevelCrateAnimation,
         randomLevelCrateSound,
-      })
+      };
+      savingRef.current = true;
+      putPreferences(payload)
         .then((updated) => {
+          markSynced(updated, updated.preferences);
           setUser?.(updated);
         })
         .catch((error) => {
           console.error('Failed to reset preferences', error);
         })
         .finally(() => {
+          savingRef.current = false;
           skipSaveRef.current = false;
         });
     } else {
       skipSaveRef.current = false;
     }
-  }, [randomLevelCrateAnimation, randomLevelCrateSound, setUser, user]);
+  }, [
+    markSynced,
+    randomLevelCrateAnimation,
+    randomLevelCrateSound,
+    setUser,
+    user,
+  ]);
 
   return {
     filters,
@@ -151,3 +285,5 @@ export function useUserPreferences(
     setRandomLevelCrateSound,
   };
 }
+
+export type UserPreferencesHandle = ReturnType<typeof useUserPreferences>;

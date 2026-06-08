@@ -114,4 +114,23 @@ mod tests {
         prefs.sort_direction = "sideways".into();
         assert!(validate_preferences(&prefs).is_err());
     }
+
+    #[test]
+    fn parse_legacy_json_defaults_crate_prefs_on() {
+        let json = r#"{"filters":{"excludeCompleted":false,"excludeNewHardests":false,"onlyMyCompletions":false,"onlyUnclaimed":false,"boardClaimKinds":[],"onlyMine":false,"positionMin":null,"positionMax":null},"sortDirection":"asc","sortMode":"position"}"#;
+        let prefs = parse_preferences_json(Some(json));
+        assert!(prefs.random_level_crate_animation);
+        assert!(prefs.random_level_crate_sound);
+    }
+
+    #[test]
+    fn round_trip_preserves_crate_bools() {
+        let mut prefs = default_preferences();
+        prefs.random_level_crate_animation = false;
+        prefs.random_level_crate_sound = false;
+        let json = serde_json::to_string(&prefs).expect("serialize preferences");
+        let parsed = parse_preferences_json(Some(&json));
+        assert!(!parsed.random_level_crate_animation);
+        assert!(!parsed.random_level_crate_sound);
+    }
 }

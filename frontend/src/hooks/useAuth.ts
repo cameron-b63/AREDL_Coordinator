@@ -64,5 +64,18 @@ export function useAuth() {
     };
   }, []);
 
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refresh]);
+
   return { user, loading: user === undefined, refresh, setClaims, patchHardest, setUser: setUserProfile };
 }
+
+export type AuthHandle = ReturnType<typeof useAuth>;

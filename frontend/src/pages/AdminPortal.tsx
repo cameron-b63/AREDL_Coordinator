@@ -2,12 +2,12 @@ import { useState } from 'preact/hooks';
 import { ClaimsSqlBrowser } from '../components/admin/ClaimsSqlBrowser';
 import { AppLayout } from '../components/layout/AppLayout';
 import { Header } from '../components/layout/Header';
-import { useAuth } from '../hooks/useAuth';
+import type { AuthHandle } from '../hooks/useAuth';
 import { adminPruneClaims, ApiError } from '../lib/api';
 import { boardPath } from '../lib/paths';
 
-export function AdminPortal() {
-  const { user } = useAuth();
+export function AdminPortal({ auth }: { auth: AuthHandle }) {
+  const { user } = auth;
   const [pruning, setPruning] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

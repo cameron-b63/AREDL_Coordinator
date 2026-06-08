@@ -8,10 +8,10 @@ import { StatsDrawer } from '../components/layout/StatsDrawer';
 import { FiltersPanel } from '../components/filters/FiltersPanel';
 import { LevelList } from '../components/levels/LevelList';
 import { RandomLevelCrateOverlay } from '../components/ui/RandomLevelCrateOverlay';
-import { useAuth } from '../hooks/useAuth';
+import type { AuthHandle } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
+import type { UserPreferencesHandle } from '../hooks/useUserPreferences';
 import { useLevels } from '../hooks/useLevels';
-import { useUserPreferences } from '../hooks/useUserPreferences';
 import { buildCrateReel, DEFAULT_CRATE_WIN_INDEX } from '../lib/buildCrateReel';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
 import { canPickRandomLevel, pickRandomLevelWithPool } from '../lib/randomLevel';
@@ -27,12 +27,17 @@ interface CrateRollState {
   winIndex: number;
 }
 
-export function BoardPage() {
+interface BoardPageProps {
+  auth: AuthHandle;
+  prefs: UserPreferencesHandle;
+}
+
+export function BoardPage({ auth, prefs }: BoardPageProps) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
   const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(true);
   const [crateRoll, setCrateRoll] = useState<CrateRollState | null>(null);
-  const { user, setClaims, patchHardest, setUser } = useAuth();
+  const { user, setClaims, patchHardest } = auth;
 
   useEffect(() => {
     const message = consumeAuthErrorFromUrl();
@@ -52,8 +57,7 @@ export function BoardPage() {
     resetToDefaults,
     randomLevelCrateAnimation,
     randomLevelCrateSound,
-  } =
-    useUserPreferences(user, setUser);
+  } = prefs;
   const signedIn = user !== null && user !== undefined;
   const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
     filters,

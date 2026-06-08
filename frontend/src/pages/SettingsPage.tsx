@@ -3,8 +3,8 @@ import { SignInButton } from '../components/auth/SignInButton';
 import { UserBadge } from '../components/auth/UserBadge';
 import { deleteManualHardest, fetchLevels, putManualHardest } from '../lib/api';
 import { resolveLevelNameByPosition } from '../lib/levelLookup';
-import { useAuth } from '../hooks/useAuth';
-import { useUserPreferences } from '../hooks/useUserPreferences';
+import type { AuthHandle } from '../hooks/useAuth';
+import type { UserPreferencesHandle } from '../hooks/useUserPreferences';
 import type { Level } from '../lib/types/level';
 import { boardPath } from '../lib/paths';
 import type { UserHardest } from '../lib/types/user';
@@ -16,14 +16,19 @@ function settingsHardestLabel(hardest: UserHardest | null): string {
   return `#${hardest.position} ${hardest.levelName}`;
 }
 
-export function SettingsPage() {
-  const { user, refresh, setUser } = useAuth();
+interface SettingsPageProps {
+  auth: AuthHandle;
+  prefs: UserPreferencesHandle;
+}
+
+export function SettingsPage({ auth, prefs }: SettingsPageProps) {
+  const { user, refresh, setUser } = auth;
   const {
     randomLevelCrateAnimation,
     setRandomLevelCrateAnimation,
     randomLevelCrateSound,
     setRandomLevelCrateSound,
-  } = useUserPreferences(user, setUser);
+  } = prefs;
   const [levels, setLevels] = useState<Level[] | null>(null);
   const [positionInput, setPositionInput] = useState('');
   const [previewName, setPreviewName] = useState<string | null>(null);
