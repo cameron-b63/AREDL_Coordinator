@@ -10,7 +10,6 @@ export const CRATE_ITEM_WIDTH = 180;
 export const CRATE_ITEM_GAP = 8;
 const SCROLL_DURATION_MS = 4000;
 const WINNER_PULSE_MS = 600;
-const SCROLL_FALLBACK_MS = SCROLL_DURATION_MS + 750;
 
 interface RandomLevelCrateOverlayProps {
   reel: BoardLevel[];
@@ -32,6 +31,49 @@ function centeredReelIndex(viewportWidth: number, translateX: number): number {
   return Math.round((viewportWidth / 2 - translateX - CRATE_ITEM_WIDTH / 2) / itemStep);
 }
 
+/** Approximates cubic-bezier(0.08, 0.82, 0.17, 1) — strong ease-out deceleration. */
+function easeOutStrong(t: number): number {
+  return 1 - Math.pow(1 - t, 4);
+}
+
+function animateScroll(
+  strip: HTMLElement,
+  fromX: number,
+  toX: number,
+  durationMs: number,
+  onDone: () => void,
+): () => void {
+  strip.style.transition = 'none';
+  strip.style.transform = `translateX(${fromX}px)`;
+  void strip.offsetHeight;
+
+  const startTime = performance.now();
+  let rafId = 0;
+  let cancelled = false;
+
+  const tick = (now: number) => {
+    if (cancelled) {
+      return;
+    }
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / durationMs);
+    const x = fromX + (toX - fromX) * easeOutStrong(t);
+    strip.style.transform = `translateX(${x}px)`;
+    if (t < 1) {
+      rafId = requestAnimationFrame(tick);
+    } else {
+      onDone();
+    }
+  };
+
+  rafId = requestAnimationFrame(tick);
+
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(rafId);
+  };
+}
+
 export function RandomLevelCrateOverlay({
   reel,
   winIndex,
@@ -44,13 +86,11 @@ export function RandomLevelCrateOverlay({
   const completedRef = useRef(false);
   const finalOffsetRef = useRef(0);
   const trackingRafRef = useRef(0);
+  const scrollCancelRef = useRef<(() => void) | null>(null);
   const lastCenteredIndexRef = useRef(-1);
   const soundsRef = useRef(createCrateSoundController());
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
-
-  const shouldPlaySound =
-    soundEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const stopTracking = useCallback(() => {
     if (trackingRafRef.current) {
@@ -59,22 +99,29 @@ export function RandomLevelCrateOverlay({
     }
   }, []);
 
+  const stopScroll = useCallback(() => {
+    scrollCancelRef.current?.();
+    scrollCancelRef.current = null;
+  }, []);
+
   const finish = useCallback(() => {
     if (completedRef.current) {
       return;
     }
     completedRef.current = true;
+    stopScroll();
     stopTracking();
     soundsRef.current.stop();
     onCompleteRef.current();
-  }, [stopTracking]);
+  }, [stopScroll, stopTracking]);
 
   const revealWinner = useCallback(() => {
     if (completedRef.current) {
       return;
     }
+    stopScroll();
     stopTracking();
-    if (shouldPlaySound) {
+    if (soundEnabled) {
       const winner = reel[winIndex];
       if (winner) {
         soundsRef.current.playLand(resolveCrateSoundTier(winner));
@@ -84,31 +131,30 @@ export function RandomLevelCrateOverlay({
     }
     setShowWinner(true);
     window.setTimeout(finish, WINNER_PULSE_MS);
-  }, [finish, reel, shouldPlaySound, stopTracking, winIndex]);
+  }, [finish, reel, soundEnabled, stopScroll, stopTracking, winIndex]);
 
-  const skipToEnd = useCallback(() => {
-    if (completedRef.current) {
-      return;
-    }
-    stopTracking();
-    soundsRef.current.stop();
+  const snapToFinal = useCallback(() => {
     const strip = stripRef.current;
     if (strip) {
       strip.style.transition = 'none';
       strip.style.transform = `translateX(${finalOffsetRef.current}px)`;
     }
+  }, []);
+
+  const skipToEnd = useCallback(() => {
+    if (completedRef.current) {
+      return;
+    }
+    stopScroll();
+    stopTracking();
+    soundsRef.current.stop();
+    snapToFinal();
     revealWinner();
-  }, [revealWinner, stopTracking]);
+  }, [revealWinner, snapToFinal, stopScroll, stopTracking]);
 
   useEffect(() => {
     completedRef.current = false;
     setShowWinner(false);
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) {
-      finish();
-      return;
-    }
 
     const viewport = viewportRef.current;
     const strip = stripRef.current;
@@ -116,6 +162,7 @@ export function RandomLevelCrateOverlay({
       return;
     }
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const itemStep = CRATE_ITEM_WIDTH + CRATE_ITEM_GAP;
     const finalOffset = viewport.offsetWidth / 2 - (winIndex * itemStep + CRATE_ITEM_WIDTH / 2);
     finalOffsetRef.current = finalOffset;
@@ -132,7 +179,7 @@ export function RandomLevelCrateOverlay({
 
       if (clamped !== lastCenteredIndexRef.current) {
         lastCenteredIndexRef.current = clamped;
-        if (shouldPlaySound) {
+        if (soundEnabled) {
           soundsRef.current.playSpinClick();
         }
       }
@@ -140,32 +187,26 @@ export function RandomLevelCrateOverlay({
       trackingRafRef.current = requestAnimationFrame(trackCrossings);
     };
 
-    let raf2 = 0;
-    let fallbackTimer = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => {
-        // Force layout before starting the CSS transition (Safari / prod minify quirks).
-        void strip.offsetHeight;
-        strip.style.transition = `transform ${SCROLL_DURATION_MS}ms cubic-bezier(0.08, 0.82, 0.17, 1)`;
-        strip.style.transform = `translateX(${finalOffset}px)`;
-        trackingRafRef.current = requestAnimationFrame(trackCrossings);
+    const startScroll = (durationMs: number) => {
+      scrollCancelRef.current = animateScroll(strip, 0, finalOffset, durationMs, () => {
+        scrollCancelRef.current = null;
+        revealWinner();
       });
-    });
-
-    const handleTransitionEnd = (event: TransitionEvent) => {
-      if (event.propertyName !== 'transform' || completedRef.current) {
-        return;
-      }
-      revealWinner();
+      trackingRafRef.current = requestAnimationFrame(trackCrossings);
     };
 
-    strip.addEventListener('transitionend', handleTransitionEnd);
-
-    fallbackTimer = window.setTimeout(() => {
-      if (!completedRef.current) {
-        revealWinner();
-      }
-    }, SCROLL_FALLBACK_MS);
+    let layoutRaf = 0;
+    const layoutRaf2 = requestAnimationFrame(() => {
+      layoutRaf = requestAnimationFrame(() => {
+        void strip.offsetHeight;
+        if (reducedMotion) {
+          snapToFinal();
+          revealWinner();
+          return;
+        }
+        startScroll(SCROLL_DURATION_MS);
+      });
+    });
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -175,15 +216,23 @@ export function RandomLevelCrateOverlay({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-      window.clearTimeout(fallbackTimer);
+      cancelAnimationFrame(layoutRaf2);
+      cancelAnimationFrame(layoutRaf);
+      stopScroll();
       stopTracking();
-      strip.removeEventListener('transitionend', handleTransitionEnd);
       window.removeEventListener('keydown', handleKeyDown);
       soundsRef.current.stop();
     };
-  }, [finish, reel.length, revealWinner, shouldPlaySound, skipToEnd, stopTracking, winIndex]);
+  }, [
+    reel.length,
+    revealWinner,
+    skipToEnd,
+    snapToFinal,
+    soundEnabled,
+    stopScroll,
+    stopTracking,
+    winIndex,
+  ]);
 
   return (
     <div

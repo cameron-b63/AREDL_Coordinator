@@ -136,7 +136,8 @@ export function SettingsPage({ auth, prefs }: SettingsPageProps) {
         <section class="settings-page__section">
           <h2 class="settings-page__section-title">Random level</h2>
           <p class="settings-page__hint">
-            Controls the dice-button roll on the board.{' '}
+            Controls the dice-button roll on the board. Uses this in-app setting only — not your
+            browser or OS motion preferences.{' '}
             {signedIn
               ? 'Changes are saved to your account.'
               : 'Sign in to save these preferences across devices.'}
