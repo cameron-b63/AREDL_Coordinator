@@ -216,6 +216,7 @@ mod tests {
                 level_id: 1,
                 two_player: false,
                 tags: vec![],
+                nlw_tier: None,
             },
             UpstreamLevel {
                 id: "lvl-50".into(),
@@ -225,6 +226,7 @@ mod tests {
                 level_id: 2,
                 two_player: false,
                 tags: vec![],
+                nlw_tier: None,
             },
             UpstreamLevel {
                 id: "lvl-100".into(),
@@ -234,6 +236,7 @@ mod tests {
                 level_id: 3,
                 two_player: false,
                 tags: vec![],
+                nlw_tier: None,
             },
         ]
     }
@@ -269,6 +272,7 @@ mod tests {
             level_id: 1,
             two_player: false,
             tags: vec![],
+            nlw_tier: None,
         }];
         assert_eq!(
             level_name_for_position(&levels, 42).as_deref(),
@@ -287,6 +291,7 @@ mod tests {
             level_id: 1,
             two_player: false,
             tags: vec![],
+            nlw_tier: None,
         }];
         assert_eq!(
             level_for_id(&levels, "lvl-abc"),

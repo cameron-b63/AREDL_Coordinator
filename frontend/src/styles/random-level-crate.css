@@ -22,7 +22,7 @@
 .crate-overlay__viewport {
   position: relative;
   overflow: hidden;
-  height: 8.5rem;
+  height: 9.75rem;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface-inset);
@@ -100,6 +100,34 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-muted-on-dark);
+}
+
+.crate-reel-item__nlw-tier {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-on-dark);
+}
+
+.crate-reel-item[data-sound-tier='neutral'] .crate-reel-item__nlw-tier,
+.crate-reel-item[data-sound-tier='easy'] .crate-reel-item__nlw-tier {
+  color: var(--color-muted-on-dark);
+}
+
+.crate-reel-item[data-sound-tier='lethal'] .crate-reel-item__nlw-tier,
+.crate-reel-item[data-sound-tier='apex150'] .crate-reel-item__nlw-tier,
+.crate-reel-item[data-sound-tier='apex75'] .crate-reel-item__nlw-tier,
+.crate-reel-item[data-sound-tier='apex10'] .crate-reel-item__nlw-tier {
+  color: var(--color-accent);
+}
+
+.crate-reel-item[data-sound-tier='apex10'] .crate-reel-item__nlw-tier {
+  font-weight: 800;
 }
 
 .crate-reel-item__name {

@@ -170,6 +170,7 @@ pub fn build_board(
                 game_level_id: level.level_id,
                 two_player: level.two_player,
                 tags,
+                nlw_tier: level.nlw_tier,
                 list_page_url,
                 clan_verification_video_url,
                 record_achieved_at,
@@ -230,6 +231,7 @@ mod tests {
             level_id: 1,
             two_player: false,
             tags: vec![],
+            nlw_tier: None,
         }
     }
 

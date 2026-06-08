@@ -1,8 +1,53 @@
+/**
+ * Random level crate sounds.
+ *
+ * Spin: procedural wheel click (no asset files).
+ * Land: one sample per sound tier — place files under `frontend/public/sounds/crate/`
+ * and map filenames in LAND_FILES below. Full guide: `public/sounds/crate/README.md`.
+ *
+ * Tier → file mapping is resolved at reveal time via `resolveCrateSoundTier()` in
+ * `levelCrateSoundTier.ts`. Playback is triggered from `RandomLevelCrateOverlay.tsx`.
+ */
+import type { CrateSoundTier } from './levelCrateSoundTier';
+
 export interface CrateSoundController {
-  playRoll: (durationMs: number) => void;
-  playReveal: () => void;
+  playSpinClick: () => void;
+  playLand: (tier: CrateSoundTier) => void;
   stop: () => void;
 }
+
+// ---------------------------------------------------------------------------
+// Land assets — link your files here (also documented in public/sounds/crate/)
+// ---------------------------------------------------------------------------
+
+/** Served from Vite `public/` at `${import.meta.env.BASE_URL}sounds/crate/`. */
+const SOUND_BASE = `${import.meta.env.BASE_URL}sounds/crate/`;
+
+/** Filename for each tier. Keys must match every `CrateSoundTier` in levelCrateSoundTier.ts. */
+const LAND_FILES: Record<CrateSoundTier, string> = {
+  easy: 'land-easy.ogg',
+  neutral: 'land-neutral.ogg',
+  hard: 'land-hard.ogg',
+  extreme: 'land-extreme.ogg',
+  lethal: 'land-lethal.ogg',
+  apex150: 'land-apex150.ogg',
+  apex75: 'land-apex75.ogg',
+  apex10: 'land-apex10.ogg',
+};
+
+/** Per-tier playback volume (0–1). Tune after dropping in your masters. */
+const LAND_GAIN: Record<CrateSoundTier, number> = {
+  easy: 0.55,
+  neutral: 0.65,
+  hard: 0.72,
+  extreme: 0.8,
+  lethal: 0.88,
+  apex150: 0.92,
+  apex75: 0.96,
+  apex10: 1,
+};
+
+const MASTER_GAIN = 0.95;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') {
@@ -17,78 +62,108 @@ function getAudioContext(): AudioContext | null {
   return new AudioContextClass();
 }
 
-function playClick(context: AudioContext, when: number): void {
-  const clickDuration = 0.014;
-  const bufferSize = Math.max(1, Math.ceil(context.sampleRate * clickDuration));
+function createMasterBus(context: AudioContext): GainNode {
+  const master = context.createGain();
+  master.gain.value = MASTER_GAIN;
+  master.connect(context.destination);
+  return master;
+}
+
+function fillNoiseBuffer(
+  context: AudioContext,
+  duration: number,
+  decayRate: number,
+): AudioBuffer {
+  const bufferSize = Math.max(1, Math.ceil(context.sampleRate * duration));
   const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
   const data = buffer.getChannelData(0);
   for (let index = 0; index < bufferSize; index += 1) {
-    const decay = Math.exp(-index / (bufferSize * 0.22));
-    data[index] = (Math.random() * 2 - 1) * decay;
+    const progress = index / bufferSize;
+    const envelope = Math.exp(-progress * decayRate);
+    data[index] = (Math.random() * 2 - 1) * envelope;
   }
-
-  const source = context.createBufferSource();
-  source.buffer = buffer;
-
-  const filter = context.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(2400 + Math.random() * 900, when);
-  filter.Q.setValueAtTime(5.5, when);
-
-  const gain = context.createGain();
-  gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.exponentialRampToValueAtTime(0.42, when + 0.0008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, when + clickDuration);
-
-  const peg = context.createOscillator();
-  peg.type = 'square';
-  peg.frequency.setValueAtTime(920 + Math.random() * 160, when);
-  const pegGain = context.createGain();
-  pegGain.gain.setValueAtTime(0.0001, when);
-  pegGain.gain.exponentialRampToValueAtTime(0.06, when + 0.0005);
-  pegGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.007);
-
-  source.connect(filter);
-  filter.connect(gain);
-  gain.connect(context.destination);
-  peg.connect(pegGain);
-  pegGain.connect(context.destination);
-
-  source.start(when);
-  source.stop(when + clickDuration);
-  peg.start(when);
-  peg.stop(when + 0.008);
+  return buffer;
 }
 
-function playTone(
+function playFilteredNoise(
   context: AudioContext,
-  frequency: number,
-  start: number,
+  master: GainNode,
+  when: number,
   duration: number,
-  volume: number,
+  filterType: BiquadFilterType,
+  frequency: number,
+  q: number,
+  peak: number,
+): void {
+  const source = context.createBufferSource();
+  source.buffer = fillNoiseBuffer(context, duration, 5);
+  const filter = context.createBiquadFilter();
+  filter.type = filterType;
+  filter.frequency.setValueAtTime(frequency, when);
+  filter.Q.setValueAtTime(q, when);
+  const gain = context.createGain();
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(peak, when + 0.002);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+  source.start(when);
+  source.stop(when + duration + 0.01);
+}
+
+function playThump(
+  context: AudioContext,
+  master: GainNode,
+  when: number,
+  startHz: number,
+  endHz: number,
+  attack: number,
+  duration: number,
+  peak: number,
 ): void {
   const oscillator = context.createOscillator();
-  const gain = context.createGain();
   oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.frequency.setValueAtTime(startHz, when);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endHz), when + duration);
+  const gain = context.createGain();
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(peak, when + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
   oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.02);
+  gain.connect(master);
+  oscillator.start(when);
+  oscillator.stop(when + duration + 0.02);
+}
+
+function playProceduralSpinClick(context: AudioContext, master: GainNode, when: number): void {
+  const jitter = Math.random() * 120;
+  playFilteredNoise(context, master, when, 0.006, 'highpass', 2200 + jitter, 0.8, 0.38);
+  playFilteredNoise(context, master, when + 0.001, 0.014, 'bandpass', 900 + jitter, 1.4, 0.32);
+  playThump(context, master, when, 420 + jitter, 180, 0.001, 0.022, 0.18);
+}
+
+async function loadBuffer(context: AudioContext, fileName: string): Promise<AudioBuffer> {
+  const response = await fetch(`${SOUND_BASE}${fileName}`);
+  if (!response.ok) {
+    throw new Error(`Failed to load sound: ${fileName}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return context.decodeAudioData(arrayBuffer);
 }
 
 export function createCrateSoundController(): CrateSoundController {
   let context: AudioContext | null = null;
-  let rollTimer: number | null = null;
-  let rollStart = 0;
-  let rollDuration = 0;
+  let master: GainNode | null = null;
+  const landBuffers = new Map<CrateSoundTier, AudioBuffer>();
+  let loadPromise: Promise<void> | null = null;
 
   function ensureContext(): AudioContext | null {
     if (!context) {
       context = getAudioContext();
+      if (context) {
+        master = createMasterBus(context);
+      }
     }
     if (context?.state === 'suspended') {
       void context.resume();
@@ -96,64 +171,65 @@ export function createCrateSoundController(): CrateSoundController {
     return context;
   }
 
-  function clearRollTimer(): void {
-    if (rollTimer != null) {
-      window.clearTimeout(rollTimer);
-      rollTimer = null;
-    }
-  }
-
-  function scheduleNextTick(): void {
-    if (rollTimer == null) {
-      return;
-    }
+  function ensureLandSamplesLoaded(): Promise<void> {
     const audioContext = ensureContext();
     if (!audioContext) {
+      return Promise.resolve();
+    }
+    if (loadPromise) {
+      return loadPromise;
+    }
+
+    loadPromise = (async () => {
+      const tiers = Object.keys(LAND_FILES) as CrateSoundTier[];
+      await Promise.all(
+        tiers.map(async (tier) => {
+          landBuffers.set(tier, await loadBuffer(audioContext, LAND_FILES[tier]));
+        }),
+      );
+    })().catch((error: unknown) => {
+      loadPromise = null;
+      console.warn('[crateSounds] Land sample load failed:', error);
+    });
+
+    return loadPromise;
+  }
+
+  function playBuffer(buffer: AudioBuffer, gainValue: number): void {
+    const audioContext = ensureContext();
+    if (!audioContext || !master) {
       return;
     }
 
-    const elapsed = performance.now() - rollStart;
-    if (elapsed >= rollDuration) {
-      clearRollTimer();
-      return;
-    }
-
-    const progress = Math.min(1, elapsed / rollDuration);
-    const intervalMs = 60 + progress * progress * 190;
-    playClick(audioContext, audioContext.currentTime);
-
-    rollTimer = window.setTimeout(scheduleNextTick, intervalMs);
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    const gain = audioContext.createGain();
+    gain.gain.value = gainValue;
+    source.connect(gain);
+    gain.connect(master);
+    source.start();
   }
 
   return {
-    playRoll(durationMs: number) {
-      this.stop();
+    playSpinClick() {
       const audioContext = ensureContext();
-      if (!audioContext) {
+      if (!audioContext || !master) {
         return;
       }
-
-      rollStart = performance.now();
-      rollDuration = durationMs;
-      playClick(audioContext, audioContext.currentTime);
-      rollTimer = window.setTimeout(scheduleNextTick, 60);
+      playProceduralSpinClick(audioContext, master, audioContext.currentTime);
     },
 
-    playReveal() {
-      clearRollTimer();
-      const audioContext = ensureContext();
-      if (!audioContext) {
-        return;
-      }
-
-      const now = audioContext.currentTime;
-      playTone(audioContext, 660, now, 0.14, 0.18);
-      playTone(audioContext, 880, now + 0.12, 0.18, 0.2);
+    playLand(tier: CrateSoundTier) {
+      void ensureLandSamplesLoaded().then(() => {
+        const buffer = landBuffers.get(tier);
+        if (buffer) {
+          playBuffer(buffer, LAND_GAIN[tier]);
+        }
+      });
     },
 
     stop() {
-      clearRollTimer();
-      rollDuration = 0;
+      // One-shot sounds; nothing to cancel.
     },
   };
 }

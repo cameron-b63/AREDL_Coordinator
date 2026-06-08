@@ -51,7 +51,6 @@ export function BoardPage() {
     toggleSortMode,
     resetToDefaults,
     randomLevelCrateAnimation,
-    setRandomLevelCrateAnimation,
     randomLevelCrateSound,
   } =
     useUserPreferences(user);
@@ -233,8 +232,6 @@ export function BoardPage() {
             onToggleSortDirection={toggleSortDirection}
             onResetFilters={resetToDefaults}
             onClose={closeFilters}
-            randomLevelCrateAnimation={randomLevelCrateAnimation}
-            onRandomLevelCrateAnimationChange={setRandomLevelCrateAnimation}
           />
         }
       />

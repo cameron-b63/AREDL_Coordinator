@@ -31,6 +31,7 @@ export interface BoardLevel {
   gameLevelId: number;
   twoPlayer: boolean;
   tags: string[];
+  nlwTier?: string | null;
   listPageUrl: string;
   clanVerificationVideoUrl?: string;
   recordAchievedAt?: string;

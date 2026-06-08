@@ -23,8 +23,6 @@ interface FiltersPanelProps {
   onToggleSortDirection: () => void;
   onResetFilters: () => void;
   onClose: () => void;
-  randomLevelCrateAnimation: boolean;
-  onRandomLevelCrateAnimationChange: (enabled: boolean) => void;
 }
 
 function parseOptionalInt(value: string): number | null {
@@ -47,8 +45,6 @@ export function FiltersPanel({
   onToggleSortDirection,
   onResetFilters,
   onClose,
-  randomLevelCrateAnimation,
-  onRandomLevelCrateAnimationChange,
 }: FiltersPanelProps) {
   const myFiltersDisabled = !signedIn;
   const hardest = user?.hardest ?? null;
@@ -265,22 +261,6 @@ export function FiltersPanel({
               />
             </label>
           </div>
-        </section>
-
-        <section class="filters-panel__section">
-          <h3 class="filters-panel__section-title">Random level</h3>
-          <label class="filters-panel__option">
-            <input
-              type="checkbox"
-              checked={randomLevelCrateAnimation}
-              onChange={(event) =>
-                onRandomLevelCrateAnimationChange(
-                  (event.currentTarget as HTMLInputElement).checked,
-                )
-              }
-            />
-            <span class="filters-panel__option-label">Crate opening animation</span>
-          </label>
         </section>
 
         {signedIn ? (

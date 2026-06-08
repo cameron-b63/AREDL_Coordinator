@@ -13,6 +13,8 @@ pub struct UpstreamLevel {
     pub two_player: bool,
     #[serde(default)]
     pub tags: Vec<Option<String>>,
+    #[serde(default)]
+    pub nlw_tier: Option<String>,
 }
 
 /// `GET /aredl/clan/{id}` — clan profile with completed records.

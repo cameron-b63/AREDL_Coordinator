@@ -25,6 +25,8 @@ pub struct BoardLevel {
     pub game_level_id: i32,
     pub two_player: bool,
     pub tags: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nlw_tier: Option<String>,
     pub list_page_url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub clan_verification_video_url: Option<String>,

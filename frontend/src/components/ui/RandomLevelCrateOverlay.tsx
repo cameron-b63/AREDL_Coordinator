@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { createCrateSoundController } from '../../lib/crateSounds';
+import {
+  formatNlwTierLabel,
+  resolveCrateSoundTier,
+} from '../../lib/levelCrateSoundTier';
 import type { BoardLevel } from '../../lib/types/board';
 
 export const CRATE_ITEM_WIDTH = 180;
@@ -14,6 +18,19 @@ interface RandomLevelCrateOverlayProps {
   onComplete: () => void;
 }
 
+function readStripTranslateX(strip: HTMLElement): number {
+  const transform = getComputedStyle(strip).transform;
+  if (!transform || transform === 'none') {
+    return 0;
+  }
+  return new DOMMatrixReadOnly(transform).m41;
+}
+
+function centeredReelIndex(viewportWidth: number, translateX: number): number {
+  const itemStep = CRATE_ITEM_WIDTH + CRATE_ITEM_GAP;
+  return Math.round((viewportWidth / 2 - translateX - CRATE_ITEM_WIDTH / 2) / itemStep);
+}
+
 export function RandomLevelCrateOverlay({
   reel,
   winIndex,
@@ -25,34 +42,49 @@ export function RandomLevelCrateOverlay({
   const [showWinner, setShowWinner] = useState(false);
   const completedRef = useRef(false);
   const finalOffsetRef = useRef(0);
+  const trackingRafRef = useRef(0);
+  const lastCenteredIndexRef = useRef(-1);
   const soundsRef = useRef(createCrateSoundController());
 
   const shouldPlaySound =
     soundEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const stopTracking = useCallback(() => {
+    if (trackingRafRef.current) {
+      cancelAnimationFrame(trackingRafRef.current);
+      trackingRafRef.current = 0;
+    }
+  }, []);
 
   const finish = useCallback(() => {
     if (completedRef.current) {
       return;
     }
     completedRef.current = true;
+    stopTracking();
     soundsRef.current.stop();
     onComplete();
-  }, [onComplete]);
+  }, [onComplete, stopTracking]);
 
   const revealWinner = useCallback(() => {
+    stopTracking();
     if (shouldPlaySound) {
-      soundsRef.current.playReveal();
+      const winner = reel[winIndex];
+      if (winner) {
+        soundsRef.current.playLand(resolveCrateSoundTier(winner));
+      }
     } else {
       soundsRef.current.stop();
     }
     setShowWinner(true);
     window.setTimeout(finish, WINNER_PULSE_MS);
-  }, [finish, shouldPlaySound]);
+  }, [finish, reel, shouldPlaySound, stopTracking, winIndex]);
 
   const skipToEnd = useCallback(() => {
     if (completedRef.current) {
       return;
     }
+    stopTracking();
     soundsRef.current.stop();
     const strip = stripRef.current;
     if (strip) {
@@ -60,7 +92,7 @@ export function RandomLevelCrateOverlay({
       strip.style.transform = `translateX(${finalOffsetRef.current}px)`;
     }
     revealWinner();
-  }, [revealWinner]);
+  }, [revealWinner, stopTracking]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -78,15 +110,33 @@ export function RandomLevelCrateOverlay({
     const itemStep = CRATE_ITEM_WIDTH + CRATE_ITEM_GAP;
     const finalOffset = viewport.offsetWidth / 2 - (winIndex * itemStep + CRATE_ITEM_WIDTH / 2);
     finalOffsetRef.current = finalOffset;
+    lastCenteredIndexRef.current = -1;
+
+    const trackCrossings = () => {
+      if (completedRef.current) {
+        return;
+      }
+
+      const translateX = readStripTranslateX(strip);
+      const index = centeredReelIndex(viewport.offsetWidth, translateX);
+      const clamped = Math.max(0, Math.min(reel.length - 1, index));
+
+      if (clamped !== lastCenteredIndexRef.current) {
+        lastCenteredIndexRef.current = clamped;
+        if (shouldPlaySound) {
+          soundsRef.current.playSpinClick();
+        }
+      }
+
+      trackingRafRef.current = requestAnimationFrame(trackCrossings);
+    };
 
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
         strip.style.transition = `transform ${SCROLL_DURATION_MS}ms cubic-bezier(0.08, 0.82, 0.17, 1)`;
         strip.style.transform = `translateX(${finalOffset}px)`;
-        if (shouldPlaySound) {
-          soundsRef.current.playRoll(SCROLL_DURATION_MS);
-        }
+        trackingRafRef.current = requestAnimationFrame(trackCrossings);
       });
     });
 
@@ -109,11 +159,12 @@ export function RandomLevelCrateOverlay({
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      stopTracking();
       strip.removeEventListener('transitionend', handleTransitionEnd);
       window.removeEventListener('keydown', handleKeyDown);
       soundsRef.current.stop();
     };
-  }, [finish, revealWinner, shouldPlaySound, skipToEnd, winIndex]);
+  }, [finish, reel, revealWinner, shouldPlaySound, skipToEnd, stopTracking, winIndex]);
 
   return (
     <div
@@ -131,18 +182,23 @@ export function RandomLevelCrateOverlay({
         <div class="crate-overlay__viewport" ref={viewportRef}>
           <div class="crate-overlay__marker" aria-hidden="true" />
           <div class="crate-overlay__strip" ref={stripRef}>
-            {reel.map((level, index) => (
-              <div
-                key={`${level.id}-${index}`}
-                class={`crate-reel-item${
-                  showWinner && index === winIndex ? ' crate-reel-item--winner' : ''
-                }`}
-              >
-                <span class="crate-reel-item__position">#{level.position}</span>
-                <span class="crate-reel-item__name">{level.name}</span>
-                <span class="crate-reel-item__points">{level.points} pts</span>
-              </div>
-            ))}
+            {reel.map((level, index) => {
+              const soundTier = resolveCrateSoundTier(level);
+              return (
+                <div
+                  key={`${level.id}-${index}`}
+                  class={`crate-reel-item${
+                    showWinner && index === winIndex ? ' crate-reel-item--winner' : ''
+                  }`}
+                  data-sound-tier={soundTier}
+                >
+                  <span class="crate-reel-item__position">#{level.position}</span>
+                  <span class="crate-reel-item__nlw-tier">{formatNlwTierLabel(level)}</span>
+                  <span class="crate-reel-item__name">{level.name}</span>
+                  <span class="crate-reel-item__points">{level.points} pts</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
