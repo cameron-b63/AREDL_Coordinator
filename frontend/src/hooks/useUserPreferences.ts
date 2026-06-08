@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import {
+  readStoredCrateAnimationEnabled,
+  readStoredCrateSoundEnabled,
+  setStoredCrateAnimationEnabled,
+  setStoredCrateSoundEnabled,
+} from '../lib/crateAnimation';
 import { putPreferences } from '../lib/api';
 import {
   defaultUserPreferences,
@@ -58,12 +64,14 @@ function applyStoredPreferences(
   setFilters(levelFiltersFromStored(prefs.filters));
   setSortDirection(prefs.sortDirection);
   setSortMode(prefs.sortMode);
-  setRandomLevelCrateAnimation(prefs.randomLevelCrateAnimation !== false);
-  setRandomLevelCrateSound(prefs.randomLevelCrateSound !== false);
+  const crateAnimation = readStoredCrateAnimationEnabled();
+  const crateSound = readStoredCrateSoundEnabled();
+  setRandomLevelCrateAnimation(crateAnimation);
+  setRandomLevelCrateSound(crateSound);
   return {
     ...prefs,
-    randomLevelCrateAnimation: prefs.randomLevelCrateAnimation !== false,
-    randomLevelCrateSound: prefs.randomLevelCrateSound !== false,
+    randomLevelCrateAnimation: crateAnimation,
+    randomLevelCrateSound: crateSound,
   };
 }
 
@@ -75,8 +83,12 @@ export function useUserPreferences(
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(DEFAULT_SORT_DIRECTION);
   const [sortMode, setSortMode] = useState<SortMode>(DEFAULT_SORT_MODE);
-  const [randomLevelCrateAnimation, setRandomLevelCrateAnimationState] = useState(true);
-  const [randomLevelCrateSound, setRandomLevelCrateSoundState] = useState(true);
+  const [randomLevelCrateAnimation, setRandomLevelCrateAnimationState] = useState(
+    readStoredCrateAnimationEnabled,
+  );
+  const [randomLevelCrateSound, setRandomLevelCrateSoundState] = useState(
+    readStoredCrateSoundEnabled,
+  );
 
   const skipSaveRef = useRef(true);
   const savingRef = useRef(false);
@@ -108,9 +120,13 @@ export function useUserPreferences(
       setFilters(DEFAULT_LEVEL_FILTERS);
       setSortDirection(DEFAULT_SORT_DIRECTION);
       setSortMode(DEFAULT_SORT_MODE);
-      setRandomLevelCrateAnimationState(true);
-      setRandomLevelCrateSoundState(true);
-      markSynced(null, defaultUserPreferences());
+      setRandomLevelCrateAnimationState(readStoredCrateAnimationEnabled());
+      setRandomLevelCrateSoundState(readStoredCrateSoundEnabled());
+      markSynced(null, {
+        ...defaultUserPreferences(),
+        randomLevelCrateAnimation: readStoredCrateAnimationEnabled(),
+        randomLevelCrateSound: readStoredCrateSoundEnabled(),
+      });
     } else {
       const prefs = user.preferences ?? defaultUserPreferences();
       const normalized = applyStoredPreferences(
@@ -216,6 +232,7 @@ export function useUserPreferences(
 
   const setRandomLevelCrateAnimation = useCallback(
     (checked: boolean) => {
+      setStoredCrateAnimationEnabled(checked);
       setRandomLevelCrateAnimationState(checked);
       if (user) {
         void savePreferencesNow({ randomLevelCrateAnimation: checked });
@@ -226,6 +243,7 @@ export function useUserPreferences(
 
   const setRandomLevelCrateSound = useCallback(
     (checked: boolean) => {
+      setStoredCrateSoundEnabled(checked);
       setRandomLevelCrateSoundState(checked);
       if (user) {
         void savePreferencesNow({ randomLevelCrateSound: checked });

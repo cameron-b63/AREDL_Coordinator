@@ -12,6 +12,7 @@ import type { AuthHandle } from '../hooks/useAuth';
 import { useFilters } from '../hooks/useFilters';
 import type { UserPreferencesHandle } from '../hooks/useUserPreferences';
 import { useLevels } from '../hooks/useLevels';
+import { isCrateAnimationEnabled, isCrateSoundEnabled } from '../lib/crateAnimation';
 import { buildCrateReel, DEFAULT_CRATE_WIN_INDEX } from '../lib/buildCrateReel';
 import { consumeAuthErrorFromUrl } from '../lib/authError';
 import { canPickRandomLevel, pickRandomLevelWithPool } from '../lib/randomLevel';
@@ -55,8 +56,6 @@ export function BoardPage({ auth, prefs }: BoardPageProps) {
     toggleSortDirection,
     toggleSortMode,
     resetToDefaults,
-    randomLevelCrateAnimation,
-    randomLevelCrateSound,
   } = prefs;
   const signedIn = user !== null && user !== undefined;
   const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
@@ -92,11 +91,7 @@ export function BoardPage({ auth, prefs }: BoardPageProps) {
       return;
     }
 
-    const useAnimation =
-      randomLevelCrateAnimation &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (useAnimation) {
+    if (isCrateAnimationEnabled()) {
       setCrateRoll({
         winner: result.winner,
         reel: buildCrateReel(result.pool, result.winner),
@@ -106,7 +101,7 @@ export function BoardPage({ auth, prefs }: BoardPageProps) {
     }
 
     setQuery(String(result.winner.gameLevelId));
-  }, [boardLevels, positionRange, randomLevelCrateAnimation, setQuery, user]);
+  }, [boardLevels, positionRange, setQuery, user]);
 
   const handleCrateComplete = useCallback(() => {
     setCrateRoll((current) => {
@@ -242,7 +237,7 @@ export function BoardPage({ auth, prefs }: BoardPageProps) {
         <RandomLevelCrateOverlay
           reel={crateRoll.reel}
           winIndex={crateRoll.winIndex}
-          soundEnabled={randomLevelCrateSound}
+          soundEnabled={isCrateSoundEnabled()}
           onComplete={handleCrateComplete}
         />
       ) : null}

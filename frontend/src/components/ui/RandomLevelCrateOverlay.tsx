@@ -10,6 +10,7 @@ export const CRATE_ITEM_WIDTH = 180;
 export const CRATE_ITEM_GAP = 8;
 const SCROLL_DURATION_MS = 4000;
 const WINNER_PULSE_MS = 600;
+const SCROLL_FALLBACK_MS = SCROLL_DURATION_MS + 750;
 
 interface RandomLevelCrateOverlayProps {
   reel: BoardLevel[];
@@ -45,6 +46,8 @@ export function RandomLevelCrateOverlay({
   const trackingRafRef = useRef(0);
   const lastCenteredIndexRef = useRef(-1);
   const soundsRef = useRef(createCrateSoundController());
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const shouldPlaySound =
     soundEnabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -63,10 +66,13 @@ export function RandomLevelCrateOverlay({
     completedRef.current = true;
     stopTracking();
     soundsRef.current.stop();
-    onComplete();
-  }, [onComplete, stopTracking]);
+    onCompleteRef.current();
+  }, [stopTracking]);
 
   const revealWinner = useCallback(() => {
+    if (completedRef.current) {
+      return;
+    }
     stopTracking();
     if (shouldPlaySound) {
       const winner = reel[winIndex];
@@ -95,6 +101,9 @@ export function RandomLevelCrateOverlay({
   }, [revealWinner, stopTracking]);
 
   useEffect(() => {
+    completedRef.current = false;
+    setShowWinner(false);
+
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) {
       finish();
@@ -132,8 +141,11 @@ export function RandomLevelCrateOverlay({
     };
 
     let raf2 = 0;
+    let fallbackTimer = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
+        // Force layout before starting the CSS transition (Safari / prod minify quirks).
+        void strip.offsetHeight;
         strip.style.transition = `transform ${SCROLL_DURATION_MS}ms cubic-bezier(0.08, 0.82, 0.17, 1)`;
         strip.style.transform = `translateX(${finalOffset}px)`;
         trackingRafRef.current = requestAnimationFrame(trackCrossings);
@@ -149,6 +161,12 @@ export function RandomLevelCrateOverlay({
 
     strip.addEventListener('transitionend', handleTransitionEnd);
 
+    fallbackTimer = window.setTimeout(() => {
+      if (!completedRef.current) {
+        revealWinner();
+      }
+    }, SCROLL_FALLBACK_MS);
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         skipToEnd();
@@ -159,12 +177,13 @@ export function RandomLevelCrateOverlay({
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      window.clearTimeout(fallbackTimer);
       stopTracking();
       strip.removeEventListener('transitionend', handleTransitionEnd);
       window.removeEventListener('keydown', handleKeyDown);
       soundsRef.current.stop();
     };
-  }, [finish, reel, revealWinner, shouldPlaySound, skipToEnd, stopTracking, winIndex]);
+  }, [finish, reel.length, revealWinner, shouldPlaySound, skipToEnd, stopTracking, winIndex]);
 
   return (
     <div
