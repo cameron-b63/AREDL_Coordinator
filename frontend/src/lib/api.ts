@@ -172,12 +172,17 @@ export async function deleteManualHardest(): Promise<User> {
   return user;
 }
 
-export function putPreferences(preferences: UserPreferences) {
-  return apiFetch<MeResponse>('/api/me/preferences', {
+export async function putPreferences(preferences: UserPreferences): Promise<User> {
+  const data = await apiFetch<MeResponse>('/api/me/preferences', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(preferences),
   });
+  const user = parseMeUser(data);
+  if (!user) {
+    throw new ApiError('No user in response', 500);
+  }
+  return user;
 }
 
 export function signInUrl(): string {

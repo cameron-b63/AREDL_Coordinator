@@ -32,7 +32,7 @@ export function BoardPage() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [includeSupposedlyCompleted, setIncludeSupposedlyCompleted] = useState(true);
   const [crateRoll, setCrateRoll] = useState<CrateRollState | null>(null);
-  const { user, setClaims, patchHardest } = useAuth();
+  const { user, setClaims, patchHardest, setUser } = useAuth();
 
   useEffect(() => {
     const message = consumeAuthErrorFromUrl();
@@ -53,7 +53,7 @@ export function BoardPage() {
     randomLevelCrateAnimation,
     randomLevelCrateSound,
   } =
-    useUserPreferences(user);
+    useUserPreferences(user, setUser);
   const signedIn = user !== null && user !== undefined;
   const { state, summary, query, setQuery, filteredLevels, patchLevelClaim } = useLevels(
     filters,
@@ -90,7 +90,6 @@ export function BoardPage() {
 
     const useAnimation =
       randomLevelCrateAnimation &&
-      result.pool.length > 1 &&
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (useAnimation) {

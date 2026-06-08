@@ -23,7 +23,7 @@ export function SettingsPage() {
     setRandomLevelCrateAnimation,
     randomLevelCrateSound,
     setRandomLevelCrateSound,
-  } = useUserPreferences(user);
+  } = useUserPreferences(user, setUser);
   const [levels, setLevels] = useState<Level[] | null>(null);
   const [positionInput, setPositionInput] = useState('');
   const [previewName, setPreviewName] = useState<string | null>(null);

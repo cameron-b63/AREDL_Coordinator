@@ -227,6 +227,34 @@
   color: var(--color-accent);
 }
 
+.level-card__nlw-tier {
+  --nlw-tier-color: var(--color-muted-on-dark);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 1.375rem;
+  padding: 0 var(--space-2);
+  border: var(--border-width) solid
+    color-mix(in srgb, var(--nlw-tier-color) 45%, var(--color-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--nlw-tier-color) 22%, var(--color-surface-inset));
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--nlw-tier-color);
+}
+
+.level-card--completed .level-card__nlw-tier {
+  background: color-mix(
+    in srgb,
+    var(--nlw-tier-color) 18%,
+    color-mix(in srgb, var(--color-surface-completed) 20%, var(--color-surface-inset))
+  );
+}
+
 .level-card__name {
   min-width: 0;
   overflow: hidden;

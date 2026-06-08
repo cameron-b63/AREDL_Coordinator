@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { copyToClipboard, isFinePointerDevice } from '../../lib/copyToClipboard';
 import { ApiError, adminResetClaim } from '../../lib/api';
+import { resolveLevelListBadge } from '../../lib/levelListBadge';
 import type { BoardLevel } from '../../lib/types/board';
 import { levelIsCompleted } from '../../lib/types/board';
 import {
@@ -35,6 +36,7 @@ export function LevelCard({
 }: LevelCardProps) {
   const completed = levelIsCompleted(level);
   const activeClaim = level.claim.active;
+  const listBadge = resolveLevelListBadge(level);
   const [copied, setCopied] = useState(false);
   const [resetting, setResetting] = useState(false);
 
@@ -145,8 +147,17 @@ export function LevelCard({
           />
         )}
       </div>
-      {level.tags.length > 0 ? (
+      {(listBadge || level.tags.length > 0) ? (
         <div class="level-card__tags" aria-label="Level tags">
+          {listBadge ? (
+            <span
+              class="level-card__nlw-tier"
+              data-list-badge={listBadge.kind}
+              style={listBadge.pillVars}
+            >
+              {listBadge.label}
+            </span>
+          ) : null}
           {level.tags.map((tag) => (
             <span
               key={tag}
