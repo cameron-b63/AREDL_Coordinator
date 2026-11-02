@@ -27,10 +27,10 @@ Use these names, or change the mapping in code (see below):
 | File | When it plays |
 |------|----------------|
 | `land-easy.ogg` | NLW tiers: Beginner, Easy, Medium |
-| `land-neutral.ogg` | NLW tiers not in a named group; list position &gt; 150 |
+| `land-neutral.ogg` | Pending NLW ranges (Low End through High End); no tier and position &gt; 150 |
 | `land-hard.ogg` | NLW: Hard, Very Hard, Insane |
 | `land-extreme.ogg` | NLW: Extreme, Remorseless, Relentless |
-| `land-lethal.ogg` | NLW: Terrifying through Fuck |
+| `land-lethal.ogg` | NLW: Terrifying through Merciless, Fuck, and tier names not in the table yet |
 | `land-apex150.ogg` | No NLW tier, position 76–150 |
 | `land-apex75.ogg` | No NLW tier, position 11–75 |
 | `land-apex10.ogg` | No NLW tier, position 1–10 |
@@ -41,7 +41,7 @@ Extension is only a convention — update `LAND_FILES` if you use `.wav` etc.
 
 1. **Filename → tier mapping** — `frontend/src/lib/crateSounds.ts`, `LAND_FILES`
 2. **Per-tier volume** — same file, `LAND_GAIN`
-3. **Which tier a level gets** — `frontend/src/lib/levelCrateSoundTier.ts`, `resolveCrateSoundTier()`
+3. **Which tier a level gets** — `frontend/src/lib/nlwTierColors.ts` (`NLW_TIER_STYLES`), read by `resolveCrateSoundTier()`
 4. **When sounds fire** — `frontend/src/components/ui/RandomLevelCrateOverlay.tsx`
    - `playSpinClick()` on each reel tile crossing while spinning
    - `playLand(tier)` when the winner is revealed
