@@ -1,5 +1,5 @@
-import { formatNlwTierLabel } from './levelCrateSoundTier';
-import { nlwTierPillVars } from './nlwTierColors';
+import { formatNlwTierLabel } from './levelCrateSoundTier.ts';
+import { nlwTierPillVars } from './nlwTierColors.ts';
 import type { BoardLevel } from './types/board';
 
 export type LevelListBadgeKind = 'main' | 'extended' | 'nlw';

@@ -1,3 +1,4 @@
+import { resolveNlwTierSound } from './nlwTierColors.ts';
 import type { BoardLevel } from './types/board';
 
 export type CrateSoundTier =
@@ -10,34 +11,10 @@ export type CrateSoundTier =
   | 'apex75'
   | 'apex10';
 
-const EASY_TIERS = new Set(['Beginner', 'Easy', 'Medium']);
-const HARD_TIERS = new Set(['Hard', 'Very Hard', 'Insane']);
-const EXTREME_TIERS = new Set(['Extreme', 'Remorseless', 'Relentless']);
-const LETHAL_TIERS = new Set([
-  'Terrifying',
-  'Catastrophic',
-  'Inexorable',
-  'Excruciating',
-  'Merciless',
-  'Fuck',
-]);
-
 export function resolveCrateSoundTier(level: BoardLevel): CrateSoundTier {
-  const nlwTier = level.nlwTier?.trim();
-  if (nlwTier) {
-    if (EASY_TIERS.has(nlwTier)) {
-      return 'easy';
-    }
-    if (HARD_TIERS.has(nlwTier)) {
-      return 'hard';
-    }
-    if (EXTREME_TIERS.has(nlwTier)) {
-      return 'extreme';
-    }
-    if (LETHAL_TIERS.has(nlwTier)) {
-      return 'lethal';
-    }
-    return 'neutral';
+  const nlwSound = resolveNlwTierSound(level.nlwTier);
+  if (nlwSound) {
+    return nlwSound;
   }
 
   if (level.position <= 10) {
