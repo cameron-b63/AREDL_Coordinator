@@ -30,7 +30,7 @@ Use these names, or change the mapping in code (see below):
 | `land-neutral.ogg` | NLW tiers not in a named group; list position &gt; 150 |
 | `land-hard.ogg` | NLW: Hard, Very Hard, Insane |
 | `land-extreme.ogg` | NLW: Extreme, Remorseless, Relentless |
-| `land-lethal.ogg` | NLW: Terrifying through Fuck |
+| `land-lethal.ogg` | NLW: Terrifying through Merciless, and Fuck |
 | `land-apex150.ogg` | No NLW tier, position 76–150 |
 | `land-apex75.ogg` | No NLW tier, position 11–75 |
 | `land-apex10.ogg` | No NLW tier, position 1–10 |

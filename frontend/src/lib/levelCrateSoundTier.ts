@@ -18,6 +18,7 @@ const LETHAL_TIERS = new Set([
   'Catastrophic',
   'Inexorable',
   'Excruciating',
+  'Merciless',
   'Fuck',
 ]);
 

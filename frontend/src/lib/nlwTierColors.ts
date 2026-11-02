@@ -1,6 +1,7 @@
 /**
  * NLW spreadsheet tier colors (Non-Listworthy Extreme Demons).
  * Source: nlw-integration ListManager::getTierColor + namu wiki tier table.
+ * Merciless is the spreadsheet legend color (Tha Levles, cell C9).
  */
 export const NLW_TIER_COLORS: Readonly<Record<string, string>> = {
   Fuck: '#000000',
@@ -17,6 +18,7 @@ export const NLW_TIER_COLORS: Readonly<Record<string, string>> = {
   Catastrophic: '#f26666',
   Inexorable: '#ffc183',
   Excruciating: '#ffe59a',
+  Merciless: '#a7e58d',
   'Super Fucking Terrifying': '#000000',
   'Low End': '#00c0ed',
   'Low-Mid Range': '#00ff87',
